@@ -1,0 +1,38 @@
+<div class="glass-card p-6 mb-8">
+    <h2 class="text-xl font-semibold mb-4">Ask a Question</h2>
+    <form method="POST" action="{% url 'ask_question' %}" enctype="multipart/form-data" id="qaForm">
+        {% csrf_token %}
+        <div class="space-y-4">
+            <input type="text" name="question" placeholder="Ask a question..." 
+                   class="w-full px-6 py-4 rounded-xl bg-white/5 backdrop-blur-lg border border-indigo-900/30
+                          focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/50">
+            
+            <div class="relative group">
+                <input type="file" name="document" id="documentInput" 
+                       class="absolute opacity-0 w-full h-full cursor-pointer"
+                       accept=".pdf,.docx,.txt">
+                <div class="flex items-center justify-center px-6 py-8 border-2 border-dashed 
+                           border-indigo-900/30 rounded-xl hover:border-indigo-500 transition-colors">
+                    <div class="text-center">
+                        <i class="fas fa-cloud-upload-alt text-indigo-500 text-2xl mb-2"></i>
+                        <p class="text-sm text-gray-400">Drop file here or click to upload</p>
+                        <p class="text-xs text-gray-500 mt-1">Supported formats: PDF, DOCX, TXT</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button type="submit" class="mt-4 w-full bg-gradient-to-r from-violet-600 to-indigo-600 
+                   text-white px-6 py-3 rounded-xl hover:shadow-lg hover:shadow-indigo-500/30 transition-all">
+            Analyze Document
+        </button>
+    </form>
+    <div id="responseContainer" class="mt-6 hidden">
+        <div class="flex items-center mb-3">
+            <div class="h-8 w-8 bg-indigo-500/20 rounded-full flex items-center justify-center mr-3">
+                <i class="fas fa-robot text-indigo-500"></i>
+            </div>
+            <h3 class="text-lg font-semibold">AI Response:</h3>
+        </div>
+        <div id="aiResponse" class="p-4 bg-white/5 rounded-lg prose prose-invert max-w-none"></div>
+    </div>
+</div>

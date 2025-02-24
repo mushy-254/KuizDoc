@@ -1,177 +1,120 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KuizDoc Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.css" rel="stylesheet">
-    <style>
-        .glass-card {
-            background: rgba(255, 255, 255, 0.25);
-            backdrop-filter: blur(10px);
-            border-radius: 1rem;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-        
-        .animate-pulse {
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
+<!-- dashboard.html -->
+{% extends 'base.html' %}
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-    </style>
-</head>
-<body class="min-h-screen bg-gradient-to-br from-rose-400 via-purple-500 to-cyan-500 text-gray-800">
-    <!-- Navbar -->
-    <nav class="sticky top-0 bg-white/95 backdrop-blur-lg shadow-lg z-50 px-8 py-4">
-        <div class="flex justify-between items-center max-w-7xl mx-auto">
-            <div class="flex items-center gap-8">
-                <h1 class="text-2xl font-bold bg-gradient-to-r from-violet-600 to-pink-400 bg-clip-text text-transparent">
-                    ✨ KuizDoc
-                </h1>
-                <div class="flex gap-4">
-                    <a href="?section=dashboard" class="px-6 py-3 rounded-xl transition-all {% if active_section == 'dashboard' %}bg-violet-600 text-white hover:scale-105{% else %}hover:bg-violet-100 hover:text-violet-600{% endif %}">
-                        Dashboard
-                    </a>
-                    <a href="?section=documents" class="px-6 py-3 rounded-xl transition-all {% if active_section == 'documents' %}bg-violet-600 text-white hover:scale-105{% else %}hover:bg-violet-100 hover:text-violet-600{% endif %}">
-                        Documents
-                    </a>
-                    <a href="?section=history" class="px-6 py-3 rounded-xl transition-all {% if active_section == 'history' %}bg-violet-600 text-white hover:scale-105{% else %}hover:bg-violet-100 hover:text-violet-600{% endif %}">
-                        History
-                    </a>
-                </div>
-            </div>
-            <div class="flex items-center gap-4">
-                <span class="px-4 py-2 rounded-full bg-violet-100 text-violet-600">Premium</span>
-                <div class="w-10 h-10 rounded-full bg-gradient-to-r from-violet-600 to-pink-400"></div>
+{% block title %}Dashboard - KuizDoc{% endblock %}
+
+{% block content %}
+<div class="space-y-8 animate-fade-in">
+    <!-- Header Section -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-4xl font-bold text-white mb-2">Welcome back, {{ user.username }} 👋</h1>
+            <p class="text-white/80">Your daily learning insights</p>
+        </div>
+        <div class="relative group">
+            <div class="w-14 h-14 rounded-full bg-gradient-to-r from-violet-600 to-pink-400 cursor-pointer hover:scale-105 transition-transform"></div>
+            <div class="absolute right-0 mt-2 hidden group-hover:block w-48 bg-white/90 rounded-lg shadow-xl p-2">
+                <a href="#" class="block px-4 py-3 hover:bg-violet-50 rounded-lg">Profile</a>
+                <a href="#" class="block px-4 py-3 hover:bg-violet-50 rounded-lg">Settings</a>
+                <a href="#" class="block px-4 py-3 hover:bg-violet-50 rounded-lg text-red-500">Logout</a>
             </div>
         </div>
-    </nav>
+    </div>
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-8 py-8">
-        {% if active_section == 'dashboard' %}
-        <div class="space-y-8">
-            <h1 class="text-4xl font-bold text-white">Welcome back, {{ user.username }} 👋</h1>
-            
-            <!-- Stats Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {% for stat in stats %}
-                <div class="glass-card p-6 text-center">
-                    <div class="text-4xl font-bold bg-gradient-to-r from-violet-600 to-pink-400 bg-clip-text text-transparent">
-                        {{ stat.value }}
-                    </div>
-                    <div>{{ stat.label }}</div>
-                </div>
-                {% endfor %}
-            </div>
-
-            <!-- Progress Chart -->
-            <div class="glass-card p-6 h-96">
-                <h2 class="text-xl font-semibold mb-4">Learning Progress</h2>
-                <canvas id="progressChart"></canvas>
-            </div>
-
-            <!-- Feature Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Goals Card -->
-                <div class="glass-card p-6">
-                    <svg class="w-10 h-10 text-violet-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <!-- Target icon SVG -->
-                    </svg>
-                    <h3 class="text-xl font-semibold">Today's Goals</h3>
-                    <div class="h-2 bg-gray-200 rounded-full mt-4 mb-2">
-                        <div class="h-full w-3/4 bg-gradient-to-r from-violet-600 to-pink-400 rounded-full"></div>
-                    </div>
-                    <p>Complete Quantum Physics Quiz</p>
-                    <button class="mt-4 w-full bg-gradient-to-r from-violet-600 to-pink-400 text-white px-6 py-3 rounded-xl hover:scale-105 transition-all">
-                        Start Now
-                    </button>
-                </div>
-
-                <!-- Achievements Card -->
-                <div class="glass-card p-6">
-                    <svg class="w-10 h-10 text-violet-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <!-- Trophy icon SVG -->
-                    </svg>
-                    <h3 class="text-xl font-semibold">Achievements</h3>
-                    <div class="w-16 h-16 bg-gradient-to-r from-violet-600 to-pink-400 rounded-full flex items-center justify-center text-white text-2xl my-4">
-                        🌟
-                    </div>
-                    <p>Master of Physics</p>
-                    <div class="flex flex-wrap gap-2 mt-4">
-                        <span class="px-3 py-1 rounded-full bg-violet-100 text-violet-600">Level 5</span>
-                        <span class="px-3 py-1 rounded-full bg-violet-100 text-violet-600">Expert</span>
-                    </div>
+    <!-- Stats Grid with Hover Effects -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {% for stat in stats %}
+        <div class="glass-card p-6 text-center hover:bg-white/10 transition-all group">
+            <div class="flex justify-center mb-4">
+                <div class="p-3 rounded-full bg-gradient-to-r from-violet-600/20 to-pink-400/20">
+                    {{ stat.icon|safe }}
                 </div>
             </div>
+            <div class="text-4xl font-bold bg-gradient-to-r from-violet-600 to-pink-400 bg-clip-text text-transparent shimmer">
+                {{ stat.value }}
+            </div>
+            <div class="text-white/80 mt-2">{{ stat.label }}</div>
+            <div class="h-1 bg-gradient-to-r from-violet-600 to-pink-400 mt-4 opacity-0 group-hover:opacity-100 transition-opacity"></div>
         </div>
-        {% elif active_section == 'documents' %}
-        <div class="space-y-8">
-            <h1 class="text-4xl font-bold text-white">Document Library 📚</h1>
-            
-            <!-- Search Bar -->
-            <form method="GET">
-                <input
-                    type="text"
-                    name="q"
-                    placeholder="Search documents..."
-                    class="w-full px-6 py-4 rounded-xl bg-white/90 backdrop-blur-lg"
-                    value="{{ search_query }}">
-            </form>
+        {% endfor %}
+    </div>
 
-            <!-- Document Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {% for document in documents %}
-                <div class="glass-card p-6 flex flex-col gap-4">
-                    <svg class="text-violet-600 w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <!-- FileText icon SVG -->
-                    </svg>
-                    <h3 class="text-lg font-semibold">{{ document.title }}</h3>
-                    <p class="text-sm text-gray-600">Last modified: {{ document.last_modified }}</p>
-                    <div class="flex gap-2">
-                        <a href="#" class="bg-gradient-to-r from-violet-600 to-pink-400 text-white px-4 py-2 rounded-xl hover:scale-105 transition-all">
-                            Open
-                        </a>
-                        <button class="px-4 py-2 rounded-xl border border-violet-200 hover:bg-violet-50 transition-all">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <!-- Share icon SVG -->
-                            </svg>
-                        </button>
+    <!-- Interactive Progress Dashboard -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Enhanced Progress Chart -->
+        <div class="glass-card p-6 h-96 relative">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold">Learning Progress</h2>
+                <div class="flex gap-2">
+                    <button class="chart-filter active" data-range="week">Week</button>
+                    <button class="chart-filter" data-range="month">Month</button>
+                    <button class="chart-filter" data-range="year">Year</button>
+                </div>
+            </div>
+            <canvas id="progressChart" class="hover:cursor-crosshair"></canvas>
+            <div id="chartTooltip" class="hidden absolute bg-white/90 p-3 rounded-lg shadow-lg text-sm"></div>
+        </div>
+
+        <!-- New Activity Feed -->
+        <div class="glass-card p-6 h-96 overflow-y-auto">
+            <h2 class="text-xl font-semibold mb-6">Recent Activity</h2>
+            <div class="space-y-4">
+                {% for activity in activities %}
+                <div class="flex items-start p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-all">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-r from-violet-600 to-pink-400 mr-4"></div>
+                    <div>
+                        <p class="font-medium">{{ activity.title }}</p>
+                        <p class="text-sm text-white/60">{{ activity.timestamp }}</p>
                     </div>
                 </div>
                 {% endfor %}
             </div>
         </div>
-        {% endif %}
-    </main>
+    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
-    <script>
-        // Chart.js implementation
-        const ctx = document.getElementById('progressChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: {{ progress_labels|safe }},
-                datasets: [{
-                    label: 'Progress',
-                    data: {{ progress_data|safe }},
-                    borderColor: '#7C3AED',
-                    tension: 0.4,
-                    pointBackgroundColor: '#7C3AED',
-                    borderWidth: 2
-                }]
+    <!-- Enhanced Q&A Section -->
+    {% include 'components/qa_section.html' %}
+    
+    <!-- Gamified Quiz Section -->
+    {% include 'components/quiz_section.html' %}
+</div>
+
+<script>
+    // Enhanced Chart Configuration
+    const chartConfig = {
+        type: 'line',
+        data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+                label: 'Progress',
+                data: [65, 78, 82, 75, 90, 85, 88],
+                backgroundColor: 'rgba(138, 43, 226, 0.2)',
+                borderColor: 'rgba(138, 43, 226, 1)',
+                borderWidth: 2,
+                tension: 0.4,
+                pointRadius: 5,
+                pointHoverRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                tooltip: {
+                    enabled: false,
+                    external: (context) => {
+                        // Custom tooltip implementation
+                    }
+                }
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false
-            }
-        });
-    </script>
-</body>
-</html>
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(255,255,255,0.1)' }
+                },
+                x: { grid: { color: 'rgba(255,255,255,0.1)' } }
+            },
+            animation: { duration: 1000 }
+        }
+    };
+</script>
+{% endblock %}

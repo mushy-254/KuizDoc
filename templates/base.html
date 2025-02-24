@@ -1,19 +1,127 @@
-<!DOCTYPE html>
 {% load static %}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}KuizDoc{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'css/main.css' %}">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <!-- <style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+    </style> -->
 </head>
-<body>
-    {% include 'learning/partials/_navbar.html' %}
-    
-    <div class="main-container">
+<body class="min-h-screen bg-gradient-to-br from-rose-400 via-purple-500 to-cyan-500 text-gray-800">
+    <!-- Navbar -->
+    <nav class="sticky top-0 bg-white/95 backdrop-blur-lg shadow-lg z-50 px-8 py-4">
+        <div class="flex justify-between items-center max-w-7xl mx-auto">
+            <div class="flex items-center gap-8">
+                <h1 class="text-2xl font-bold bg-gradient-to-r from-violet-600 to-pink-400 bg-clip-text text-transparent">
+                    ✨ KuizDoc
+                </h1>
+                <div class="flex gap-4">
+                    <a href="?section=dashboard" class="px-6 py-3 rounded-xl transition-all {% if active_section == 'dashboard' %}bg-violet-600 text-white hover:scale-105{% else %}hover:bg-violet-100 hover:text-violet-600{% endif %}">
+                        Dashboard
+                    </a>
+                    <a href="?section=documents" class="px-6 py-3 rounded-xl transition-all {% if active_section == 'documents' %}bg-violet-600 text-white hover:scale-105{% else %}hover:bg-violet-100 hover:text-violet-600{% endif %}">
+                        Documents
+                    </a>
+                    <a href="?section=history" class="px-6 py-3 rounded-xl transition-all {% if active_section == 'history' %}bg-violet-600 text-white hover:scale-105{% else %}hover:bg-violet-100 hover:text-violet-600{% endif %}">
+                        History
+                    </a>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="px-4 py-2 rounded-full bg-violet-100 text-violet-600">Premium</span>
+                <div class="w-10 h-10 rounded-full bg-gradient-to-r from-violet-600 to-pink-400"></div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-8 py-8">
         {% block content %}{% endblock %}
+    </main>
+
+    <!-- Error Modal -->
+    <div id="errorModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg p-8 max-w-sm w-full">
+            <h2 class="text-xl font-bold mb-4">Error</h2>
+            <p id="errorMessage" class="mb-6"></p>
+            <button onclick="closeModal()" class="w-full bg-gradient-to-r from-violet-600 to-pink-400 text-white px-6 py-3 rounded-xl hover:scale-105 transition-all">
+                Close
+            </button>
+        </div>
     </div>
 
-    <script src="{% static 'js/charts.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('errorModal').classList.add('hidden');
+        }
+
+        {% if error_message %}
+        showError("{{ error_message }}");
+        {% endif %}
+
+        document.getElementById('qaForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            const button = form.querySelector('button[type="submit"]');
+            const originalButtonText = button.innerHTML;
+            
+            try {
+                button.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Analyzing...`;
+                button.disabled = true;
+
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                if (!response.ok) throw new Error(await response.text());
+                
+                const data = await response.json();
+                document.getElementById('responseContainer').classList.remove('hidden');
+                document.getElementById('aiResponse').innerHTML = marked.parse(data.ai_response);
+            } catch (error) {
+                showToast('Error processing request: ' + error.message, 'error');
+            } finally {
+                button.innerHTML = originalButtonText;
+                button.disabled = false;
+            }
+        });
+
+        // File input validation
+        document.getElementById('documentInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            const allowedTypes = ['application/pdf', 'text/plain', 
+                                'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+
+            if (!allowedTypes.includes(file.type)) {
+                showToast('Invalid file type. Please upload PDF, DOCX, or TXT.', 'error');
+                this.value = '';
+            }
+            
+            if (file.size > maxSize) {
+                showToast('File size exceeds 5MB limit.', 'error');
+                this.value = '';
+            }
+        });
+    </script>
 </body>
 </html>
