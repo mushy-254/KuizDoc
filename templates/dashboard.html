@@ -1,384 +1,177 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>KuizDoc - Premium Learning Experience</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KuizDoc Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.css" rel="stylesheet">
     <style>
-        :root {
-            --primary: #7C3AED;
-            --primary-light: #A78BFA;
-            --secondary: #14B8A6;
-            --accent: #F472B6;
-            --background: #F8FAFC;
-            --dark: #1E293B;
-            --card-bg: rgba(255, 255, 255, 0.9);
-            --success: #10B981;
-            --warning: #F59E0B;
-            --error: #EF4444;
+        .glass-card {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0px); }
+        
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
 
         @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-        }
-
-        body {
-            background: linear-gradient(-45deg, #EE7752, #E73C7E, #23A6D5, #23D5AB);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
-            min-height: 100vh;
-            color: var(--dark);
-        }
-
-        .navbar {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 1rem 2rem;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .glass-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(16px);
-            border-radius: 16px;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            transition: all 0.3s ease;
-        }
-
-        .glass-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.15);
-        }
-
-        .main-container {
-            max-width: 1400px;
-            margin: 2rem auto;
-            padding: 0 2rem;
-        }
-
-        .feature-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin: 2rem 0;
-        }
-
-        .feature-card {
-            padding: 2rem;
-            animation: fadeIn 0.5s ease-out forwards;
-        }
-
-        .feature-icon {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        .nav-button {
-            background: transparent;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 12px;
-            color: var(--dark);
-            font-weight: 500;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .nav-button:hover {
-            background: rgba(124, 58, 237, 0.1);
-            color: var(--primary);
-        }
-
-        .nav-button.active {
-            background: var(--primary);
-            color: white;
-        }
-
-        .nav-button.active:hover {
-            transform: scale(1.05);
-        }
-
-        .progress-bar {
-            height: 10px;
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 5px;
-            overflow: hidden;
-            margin: 1rem 0;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary), var(--accent));
-            transition: width 1s ease;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin: 2rem 0;
-        }
-
-        .stat-card {
-            padding: 1.5rem;
-            text-align: center;
-            animation: pulse 2s infinite;
-        }
-
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: bold;
-            background: linear-gradient(45deg, var(--primary), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .chart-container {
-            padding: 2rem;
-            margin: 2rem 0;
-            height: 400px;
-        }
-
-        .achievement-badge {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(45deg, var(--primary), var(--accent));
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.5rem;
-            margin: 1rem auto;
-            animation: pulse 2s infinite;
-        }
-
-        /* Modern Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.1);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--primary);
-            border-radius: 4px;
-        }
-
-        /* Animated Button */
-        .action-button {
-            background: linear-gradient(45deg, var(--primary), var(--accent));
-            color: white;
-            border: none;
-            padding: 1rem 2rem;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            transform-origin: center;
-        }
-
-        .action-button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 20px rgba(124, 58, 237, 0.3);
-        }
-
-        /* Category Pills */
-        .category-pill {
-            background: rgba(124, 58, 237, 0.1);
-            color: var(--primary);
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            display: inline-block;
-            margin: 0.25rem;
-            transition: all 0.3s ease;
-        }
-
-        .category-pill:hover {
-            background: var(--primary);
-            color: white;
-            transform: scale(1.05);
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
     </style>
 </head>
-<body>
-    <nav class="navbar">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div style="display: flex; align-items: center; gap: 2rem;">
-                <div style="font-size: 1.5rem; font-weight: bold; 
-                           background: linear-gradient(45deg, var(--primary), var(--accent));
-                           -webkit-background-clip: text;
-                           -webkit-text-fill-color: transparent;">
+<body class="min-h-screen bg-gradient-to-br from-rose-400 via-purple-500 to-cyan-500 text-gray-800">
+    <!-- Navbar -->
+    <nav class="sticky top-0 bg-white/95 backdrop-blur-lg shadow-lg z-50 px-8 py-4">
+        <div class="flex justify-between items-center max-w-7xl mx-auto">
+            <div class="flex items-center gap-8">
+                <h1 class="text-2xl font-bold bg-gradient-to-r from-violet-600 to-pink-400 bg-clip-text text-transparent">
                     ✨ KuizDoc
-                </div>
-                <div style="display: flex; gap: 1rem;">
-                    <button class="nav-button active" onclick="showSection('dashboard')">Dashboard</button>
-                    <button class="nav-button" onclick="showSection('hints')">Smart Hints</button>
-                    <button class="nav-button" onclick="showSection('quiz')">Quiz Arena</button>
-                    <button class="nav-button" onclick="showSection('progress')">Progress</button>
+                </h1>
+                <div class="flex gap-4">
+                    <a href="?section=dashboard" class="px-6 py-3 rounded-xl transition-all {% if active_section == 'dashboard' %}bg-violet-600 text-white hover:scale-105{% else %}hover:bg-violet-100 hover:text-violet-600{% endif %}">
+                        Dashboard
+                    </a>
+                    <a href="?section=documents" class="px-6 py-3 rounded-xl transition-all {% if active_section == 'documents' %}bg-violet-600 text-white hover:scale-105{% else %}hover:bg-violet-100 hover:text-violet-600{% endif %}">
+                        Documents
+                    </a>
+                    <a href="?section=history" class="px-6 py-3 rounded-xl transition-all {% if active_section == 'history' %}bg-violet-600 text-white hover:scale-105{% else %}hover:bg-violet-100 hover:text-violet-600{% endif %}">
+                        History
+                    </a>
                 </div>
             </div>
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                <div class="category-pill">Premium</div>
-                <div style="width: 40px; height: 40px; 
-                           background: linear-gradient(45deg, var(--primary), var(--accent));
-                           border-radius: 50%;"></div>
+            <div class="flex items-center gap-4">
+                <span class="px-4 py-2 rounded-full bg-violet-100 text-violet-600">Premium</span>
+                <div class="w-10 h-10 rounded-full bg-gradient-to-r from-violet-600 to-pink-400"></div>
             </div>
         </div>
     </nav>
 
-    <div class="main-container">
-        <section id="dashboard" class="active" style="animation: fadeIn 0.5s ease-out;">
-            <h1 style="font-size: 2.5rem; margin-bottom: 2rem;
-                       background: linear-gradient(45deg, var(--primary), var(--accent));
-                       -webkit-background-clip: text;
-                       -webkit-text-fill-color: transparent;">
-                Welcome back, Alex! 👋
-            </h1>
-
-            <div class="stats-grid">
-                <div class="glass-card stat-card">
-                    <div class="stat-number">92%</div>
-                    <div>Average Score</div>
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-8 py-8">
+        {% if active_section == 'dashboard' %}
+        <div class="space-y-8">
+            <h1 class="text-4xl font-bold text-white">Welcome back, {{ user.username }} 👋</h1>
+            
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {% for stat in stats %}
+                <div class="glass-card p-6 text-center">
+                    <div class="text-4xl font-bold bg-gradient-to-r from-violet-600 to-pink-400 bg-clip-text text-transparent">
+                        {{ stat.value }}
+                    </div>
+                    <div>{{ stat.label }}</div>
                 </div>
-                <div class="glass-card stat-card">
-                    <div class="stat-number">15</div>
-                    <div>Days Streak</div>
-                </div>
-                <div class="glass-card stat-card">
-                    <div class="stat-number">247</div>
-                    <div>Questions Answered</div>
-                </div>
+                {% endfor %}
             </div>
 
-            <div class="glass-card chart-container">
-                <h2>Learning Progress</h2>
+            <!-- Progress Chart -->
+            <div class="glass-card p-6 h-96">
+                <h2 class="text-xl font-semibold mb-4">Learning Progress</h2>
                 <canvas id="progressChart"></canvas>
             </div>
 
-            <div class="feature-grid">
-                <div class="glass-card feature-card">
-                    <div class="feature-icon">🎯</div>
-                    <h3>Today's Goals</h3>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: 75%"></div>
+            <!-- Feature Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Goals Card -->
+                <div class="glass-card p-6">
+                    <svg class="w-10 h-10 text-violet-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <!-- Target icon SVG -->
+                    </svg>
+                    <h3 class="text-xl font-semibold">Today's Goals</h3>
+                    <div class="h-2 bg-gray-200 rounded-full mt-4 mb-2">
+                        <div class="h-full w-3/4 bg-gradient-to-r from-violet-600 to-pink-400 rounded-full"></div>
                     </div>
                     <p>Complete Quantum Physics Quiz</p>
-                    <button class="action-button" style="margin-top: 1rem;">Start Now</button>
+                    <button class="mt-4 w-full bg-gradient-to-r from-violet-600 to-pink-400 text-white px-6 py-3 rounded-xl hover:scale-105 transition-all">
+                        Start Now
+                    </button>
                 </div>
 
-                <div class="glass-card feature-card">
-                    <div class="feature-icon">🏆</div>
-                    <h3>Achievements</h3>
-                    <div class="achievement-badge">🌟</div>
-                    <p>Master of Physics</p>
-                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem;">
-                        <div class="category-pill">Level 5</div>
-                        <div class="category-pill">Expert</div>
+                <!-- Achievements Card -->
+                <div class="glass-card p-6">
+                    <svg class="w-10 h-10 text-violet-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <!-- Trophy icon SVG -->
+                    </svg>
+                    <h3 class="text-xl font-semibold">Achievements</h3>
+                    <div class="w-16 h-16 bg-gradient-to-r from-violet-600 to-pink-400 rounded-full flex items-center justify-center text-white text-2xl my-4">
+                        🌟
                     </div>
-                </div>
-
-                <div class="glass-card feature-card">
-                    <div class="feature-icon">📚</div>
-                    <h3>Study Recommendations</h3>
-                    <div style="margin-top: 1rem;">
-                        <div class="category-pill">Quantum Mechanics</div>
-                        <div class="category-pill">Wave Theory</div>
-                        <div class="category-pill">Particle Physics</div>
+                    <p>Master of Physics</p>
+                    <div class="flex flex-wrap gap-2 mt-4">
+                        <span class="px-3 py-1 rounded-full bg-violet-100 text-violet-600">Level 5</span>
+                        <span class="px-3 py-1 rounded-full bg-violet-100 text-violet-600">Expert</span>
                     </div>
                 </div>
             </div>
-        </section>
-    </div>
+        </div>
+        {% elif active_section == 'documents' %}
+        <div class="space-y-8">
+            <h1 class="text-4xl font-bold text-white">Document Library 📚</h1>
+            
+            <!-- Search Bar -->
+            <form method="GET">
+                <input
+                    type="text"
+                    name="q"
+                    placeholder="Search documents..."
+                    class="w-full px-6 py-4 rounded-xl bg-white/90 backdrop-blur-lg"
+                    value="{{ search_query }}">
+            </form>
 
+            <!-- Document Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {% for document in documents %}
+                <div class="glass-card p-6 flex flex-col gap-4">
+                    <svg class="text-violet-600 w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <!-- FileText icon SVG -->
+                    </svg>
+                    <h3 class="text-lg font-semibold">{{ document.title }}</h3>
+                    <p class="text-sm text-gray-600">Last modified: {{ document.last_modified }}</p>
+                    <div class="flex gap-2">
+                        <a href="#" class="bg-gradient-to-r from-violet-600 to-pink-400 text-white px-4 py-2 rounded-xl hover:scale-105 transition-all">
+                            Open
+                        </a>
+                        <button class="px-4 py-2 rounded-xl border border-violet-200 hover:bg-violet-50 transition-all">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <!-- Share icon SVG -->
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
     <script>
-        // Initialize Charts
+        // Chart.js implementation
         const ctx = document.getElementById('progressChart').getContext('2d');
         new Chart(ctx, {
             type: 'line',
             data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                labels: {{ progress_labels|safe }},
                 datasets: [{
-                    label: 'Study Progress',
-                    data: [65, 78, 82, 75, 90, 85, 88],
-                    fill: true,
+                    label: 'Progress',
+                    data: {{ progress_data|safe }},
                     borderColor: '#7C3AED',
-                    backgroundColor: 'rgba(124, 58, 237, 0.1)',
-                    tension: 0.4
+                    tension: 0.4,
+                    pointBackgroundColor: '#7C3AED',
+                    borderWidth: 2
                 }]
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100
-                    }
-                }
+                maintainAspectRatio: false
             }
         });
-
-        // Add smooth scrolling
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
-                });
-            });
-        });
-
-        // Show/Hide sections
-        function showSection(sectionId) {
-            document.querySelectorAll('section').forEach(section => {
-                section.classList.remove('active');
-            });
-            document.querySelectorAll('.nav-button').forEach(button => {
-                button.classList.remove('active');
-            });
-            document.getElementById(sectionId).classList.add('active');
-            event.target.classList.add('active');
-        }
     </script>
 </body>
 </html>
