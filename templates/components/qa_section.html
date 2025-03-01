@@ -10,16 +10,18 @@
             <div class="relative group">
                 <input type="file" name="document" id="documentInput" 
                        class="absolute opacity-0 w-full h-full cursor-pointer"
-                       accept=".pdf,.docx,.txt">
+                       accept=".pdf,.docx,.txt" multiple>
                 <div class="flex items-center justify-center px-6 py-8 border-2 border-dashed 
                            border-indigo-900/30 rounded-xl hover:border-indigo-500 transition-colors">
                     <div class="text-center">
                         <i class="fas fa-cloud-upload-alt text-indigo-500 text-2xl mb-2"></i>
-                        <p class="text-sm text-gray-400">Drop file here or click to upload</p>
+                        <p class="text-sm text-gray-400">Drop files here or click to upload</p>
                         <p class="text-xs text-gray-500 mt-1">Supported formats: PDF, DOCX, TXT</p>
                     </div>
                 </div>
             </div>
+            
+            <div id="selectedFiles" class="mt-4 space-y-2"></div>
         </div>
         <button type="submit" class="mt-4 w-full bg-gradient-to-r from-violet-600 to-indigo-600 
                    text-white px-6 py-3 rounded-xl hover:shadow-lg hover:shadow-indigo-500/30 transition-all">
@@ -36,3 +38,108 @@
         <div id="aiResponse" class="p-4 bg-white/5 rounded-lg prose prose-invert max-w-none"></div>
     </div>
 </div>
+<!-- Add Marked.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('*********************************************')
+
+        const form = document.getElementById('qaForm');
+        if (form) {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(form);
+                const button = form.querySelector('button[type="submit"]');
+                const originalButtonText = button.innerHTML;
+                
+                try {
+                    console.log('*********************************************')
+                    button.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Analyzing...`;
+                    button.disabled = true;
+                    console.log('*********************************************')
+
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+
+                    if (!response.ok) throw new Error(await response.text());
+                    
+                    const data = await response.json();
+                    console.log('AI Response:', data.ai_response);
+                    
+                    document.getElementById('responseContainer').classList.remove('hidden');
+                    
+                    // Ensure Marked.js is loaded before calling it
+                    if (typeof marked !== 'undefined') {
+                        document.getElementById('aiResponse').innerHTML = marked.parse(data.ai_response);
+                    } else {
+                        console.error("Marked.js is not loaded properly.");
+                        document.getElementById('aiResponse').innerText = data.ai_response;
+                    }
+
+                    // Initialize syntax highlighting for code blocks
+                    document.querySelectorAll('pre code').forEach((block) => {
+                        hljs.highlightBlock(block);
+                    });
+                } catch (error) {
+                    console.error('Error:', error);
+                    showError('Error processing request: ' + error.message);
+                } finally {
+                    button.innerHTML = originalButtonText;
+                    button.disabled = false;
+                }
+            });
+        }
+    });
+</script>
+
+<!-- <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('*********************************************')
+
+        const form = document.getElementById('qaForm');
+        if (form) {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(form);
+                const button = form.querySelector('button[type="submit"]');
+                const originalButtonText = button.innerHTML;
+                
+                try {
+                    console.log('*********************************************')
+                    button.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Analyzing...`;
+                    button.disabled = true;
+                    console.log('*********************************************')
+
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+
+                    if (!response.ok) throw new Error(await response.text());
+                    
+                    const data = await response.json();
+                    console.log('AI Response:', data.ai_response);
+                    
+                    document.getElementById('responseContainer').classList.remove('hidden');
+                    document.getElementById('aiResponse').innerHTML = marked.parse(data.ai_response);
+                    
+                    // Initialize syntax highlighting for code blocks
+                    document.querySelectorAll('pre code').forEach((block) => {
+                        hljs.highlightBlock(block);
+                    });
+                } catch (error) {
+                    console.error('Error:', error);
+                    showError('Error processing request: ' + error.message);
+                } finally {
+                    button.innerHTML = originalButtonText;
+                    button.disabled = false;
+                }
+            });
+        }
+    });
+</script> -->

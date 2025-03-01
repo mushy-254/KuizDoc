@@ -64,6 +64,60 @@ def dashboard(request):
     }
     return render(request, 'dashboard.html', context)
 
+def extract_text(document):
+    """Extract text content from uploaded document."""
+    if document.content_type == 'application/pdf':
+        pdf_reader = PdfReader(document)
+        return '\n'.join(
+            [page.extract_text() for page in pdf_reader.pages]
+        )
+    return document.read().decode()
+
+def ask_openai(question, document_text):
+    print(f"********* hello i'm being callled")
+    api_key = os.getenv('OPENAI_API_KEY')
+    if not api_key:
+        raise ValueError('OPENAI_API_KEY environment variable is not set')
+        
+    headers = {
+        'Authorization': f'Bearer {api_key}',
+        'Content-Type': 'application/json'
+    }
+    
+    prompt = f"""
+    Analyze this document and answer the user's question.
+    
+    DOCUMENT CONTENT:
+    {document_text[:12000]}
+    
+    USER QUESTION: {question}
+    
+    Respond in markdown format with clear sections.
+    """
+    
+    response = requests.post(
+        'https://api.openai.com/v1/chat/completions',
+        headers=headers,
+        json={
+            "model": "gpt-3.5-turbo",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a helpful AI assistant that analyzes documents and answers questions about them."
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            "temperature": 0.7,
+            "max_tokens": 1000
+        }
+    )
+    print(f"the response was: {response.json()}")
+    response.raise_for_status()
+    return response.json()['choices'][0]['message']['content']
+
 @require_POST
 def ask_question(request):
     try:
@@ -77,51 +131,26 @@ def ask_question(request):
                 status=400
             )
 
-        # Process document
-        text_content = ''
-        if document.content_type == 'application/pdf':
-            pdf_reader = PdfReader(document)
-            text_content = '\n'.join(
-                [page.extract_text() for page in pdf_reader.pages]
-            )
-        else:
-            text_content = document.read().decode()
-
-        # Prepare Gemini API request
-        api_key = os.getenv('GEMINI_API_KEY')
-        prompt = textwrap.dedent(f"""
-        Analyze this document and answer the user's question.
+        # Process document and get AI response
+        text_content = extract_text(document)
+        ai_response = ask_openai(question, text_content)
         
-        DOCUMENT CONTENT:
-        {text_content[:15000]}  # Limit to 15k characters
-        
-        USER QUESTION: {question}
-        
-        INSTRUCTIONS:
-        1. Provide a comprehensive answer
-        2. Include key points from the document
-        3. Use markdown formatting for clarity
-        4. Keep response under 500 words
-        """)
-
-        response = requests.post(
-            f'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={api_key}',
-            json={
-                'contents': [{
-                    'parts': [{'text': prompt}]
-                }]
-            },
-            timeout=30
-        )
-        response.raise_for_status()
-
-        # Parse response
-        result = response.json()
-        ai_response = result['candidates'][0]['content']['parts'][0]['text']
+        # Add logging
+        print("AI Response:", ai_response)
         
         return JsonResponse({'ai_response': ai_response})
 
+    except ValueError as e:
+        print("ValueError:", str(e))
+        return JsonResponse({'error': str(e)}, status=500)
+    except requests.RequestException as e:
+        print("RequestException:", str(e))
+        return JsonResponse(
+            {'error': f'Error communicating with OpenAI API: {str(e)}'}, 
+            status=500
+        )
     except Exception as e:
+        print("Unexpected error:", str(e))
         return JsonResponse(
             {'error': f'Error processing request: {str(e)}'},
             status=500
