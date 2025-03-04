@@ -1,0 +1,47 @@
+<button id="voiceButton" class="p-4 rounded-full bg-gradient-to-r from-violet-600 to-pink-400 hover:scale-105 transition-transform"></button>
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+    </svg>
+</button>
+
+<script>
+    document.getElementById('voiceButton').addEventListener('click', async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const mediaRecorder = new MediaRecorder(stream);
+            const audioChunks = [];
+
+            mediaRecorder.addEventListener('dataavailable', (event) => {
+                audioChunks.push(event.data);
+            });
+
+            mediaRecorder.addEventListener('stop', async () => {
+                const audioBlob = new Blob(audioChunks);
+                const formData = new FormData();
+                formData.append('audio', audioBlob);
+
+                try {
+                    const response = await fetch('/api/process-voice', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const result = await response.json();
+                    // Handle AI response here
+                    console.log('AI Response:', result);
+                } catch (error) {
+                    console.error('Error processing voice:', error);
+                }
+            });
+
+            // Record for 5 seconds
+            mediaRecorder.start();
+            setTimeout(() => {
+                mediaRecorder.stop();
+                stream.getTracks().forEach(track => track.stop());
+            }, 5000);
+
+        } catch (error) {
+            console.error('Error accessing microphone:', error);
+        }
+    });
+</script>

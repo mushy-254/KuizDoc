@@ -11,22 +11,23 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-ukp@xuzflgv9i%jrzcw)7nepygz)q5ui$#b-6mj6lly@4zc4p_'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-ukp@xuzflgv9i%jrzcw)7nepygz)q5ui$#b-6mj6lly@4zc4p_')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DJANGO_DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = []
-
+# ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '').split(',')
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 # Application definition
 
@@ -68,7 +69,6 @@ TEMPLATES = [
         },
     },
 ]
-
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
@@ -120,17 +120,14 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# TEMPLATES = [
-#     {
-#         'DIRS': [BASE_DIR / 'templates']
-#     }
-# ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-
-STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+
+
+# API Keys loaded from .env file
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+
+# Debugging
+print(f"OpenAI API Key Loaded: {bool(OPENAI_API_KEY)}")  # Remove in production
+print(f"Gemini API Key Loaded: {bool(GEMINI_API_KEY)}")  # Remove in production

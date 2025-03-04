@@ -1,145 +1,375 @@
-<div class="glass-card p-6 mb-8">
-    <h2 class="text-xl font-semibold mb-4">Ask a Question</h2>
-    <form method="POST" action="{% url 'ask_question' %}" enctype="multipart/form-data" id="qaForm">
-        {% csrf_token %}
-        <div class="space-y-4">
-            <input type="text" name="question" placeholder="Ask a question..." 
-                   class="w-full px-6 py-4 rounded-xl bg-white/5 backdrop-blur-lg border border-indigo-900/30
-                          focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/50">
-            
-            <div class="relative group">
-                <input type="file" name="document" id="documentInput" 
-                       class="absolute opacity-0 w-full h-full cursor-pointer"
-                       accept=".pdf,.docx,.txt" multiple>
-                <div class="flex items-center justify-center px-6 py-8 border-2 border-dashed 
-                           border-indigo-900/30 rounded-xl hover:border-indigo-500 transition-colors">
-                    <div class="text-center">
-                        <i class="fas fa-cloud-upload-alt text-indigo-500 text-2xl mb-2"></i>
-                        <p class="text-sm text-gray-400">Drop files here or click to upload</p>
-                        <p class="text-xs text-gray-500 mt-1">Supported formats: PDF, DOCX, TXT</p>
+<div class="chat-container glass-morphism p-6 rounded-2xl relative overflow-hidden">
+    <!-- Ambient Background -->
+    <div class="absolute inset-0 bg-gradient-to-br from-violet-600/10 via-indigo-600/5 to-purple-600/10 animate-gradient"></div>
+    
+    <!-- Document Upload Section -->
+    <div class="document-section mb-8">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-semibold text-white">Document Analysis</h2>
+            <div class="flex space-x-2">
+                <button id="playAudioBtn" class="btn-icon hidden">
+                    <i class="fas fa-play"></i>
+                </button>
+                <button id="pauseAudioBtn" class="btn-icon hidden">
+                    <i class="fas fa-pause"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="upload-zone group" id="dropZone">
+            <input type="file" id="fileInput" class="hidden" accept=".pdf,.docx,.txt">
+            <div class="flex flex-col items-center justify-center h-40 border-2 border-dashed border-indigo-500/30 rounded-xl transition-all group-hover:border-indigo-500">
+                <div class="icon-bounce">
+                    <i class="fas fa-cloud-upload-alt text-3xl text-indigo-400 group-hover:text-indigo-300"></i>
+                </div>
+                <p class="mt-4 text-gray-400">Drop your document here or click to upload</p>
+                <p class="text-sm text-gray-500 mt-2">Supported formats: PDF, DOCX, TXT</p>
+            </div>
+        </div>
+
+        <!-- Document Summary -->
+        <div id="summaryContainer" class="mt-6 hidden animate-fade-in">
+            <div class="p-4 bg-white/5 rounded-xl border border-indigo-500/20">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center">
+                        <i class="fas fa-file-alt text-indigo-400 mr-2"></i>
+                        <span class="font-medium">Document Summary</span>
                     </div>
+                    <button id="readSummaryBtn" class="btn-icon">
+                        <i class="fas fa-volume-up"></i>
+                    </button>
+                </div>
+                <p id="summaryText" class="text-gray-300 text-sm leading-relaxed"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Voice Chat Interface -->
+    <div class="chat-interface">
+        <div class="flex items-center justify-center space-x-4 mb-6">
+            <button id="recordButton" class="record-btn group">
+                <!-- Pulsing Effect -->
+                <div class="absolute inset-0 rounded-full bg-violet-600/20 group-hover:scale-110 transition-all"></div>
+                
+                <!-- Recording Animation -->
+                <div id="recordingIndicator" class="hidden">
+                    <div class="absolute inset-0 rounded-full bg-red-500/20 animate-ping"></div>
+                    <div class="absolute inset-0 rounded-full bg-red-500/40"></div>
+                </div>
+                
+                <div class="relative p-4 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600">
+                    <i class="fas fa-microphone text-xl text-white"></i>
+                </div>
+            </button>
+            
+            <div id="recordingStatus" class="hidden">
+                <div class="flex items-center space-x-2">
+                    <div class="recording-wave">
+                        <span></span><span></span><span></span><span></span>
+                    </div>
+                    <span class="text-sm text-gray-400">Recording... <span id="recordingTime">0:00</span></span>
                 </div>
             </div>
-            
-            <div id="selectedFiles" class="mt-4 space-y-2"></div>
         </div>
-        <button type="submit" class="mt-4 w-full bg-gradient-to-r from-violet-600 to-indigo-600 
-                   text-white px-6 py-3 rounded-xl hover:shadow-lg hover:shadow-indigo-500/30 transition-all">
-            Analyze Document
-        </button>
-    </form>
-    <div id="responseContainer" class="mt-6 hidden">
-        <div class="flex items-center mb-3">
-            <div class="h-8 w-8 bg-indigo-500/20 rounded-full flex items-center justify-center mr-3">
-                <i class="fas fa-robot text-indigo-500"></i>
-            </div>
-            <h3 class="text-lg font-semibold">AI Response:</h3>
+
+        <!-- Chat Messages -->
+        <div id="chatMessages" class="space-y-4 max-h-96 overflow-y-auto custom-scrollbar">
+            <!-- Messages will be inserted here -->
         </div>
-        <div id="aiResponse" class="p-4 bg-white/5 rounded-lg prose prose-invert max-w-none"></div>
+
+        <!-- Text Input -->
+        <div class="mt-4">
+            <form id="chatForm" class="flex items-center space-x-2">
+                <input type="text" 
+                       class="flex-1 px-4 py-3 bg-white/5 border border-indigo-500/20 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/50 transition-all"
+                       placeholder="Type your message...">
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-paper-plane mr-2"></i>
+                    Send
+                </button>
+            </form>
+        </div>
     </div>
 </div>
-<!-- Add Marked.js CDN -->
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<style>
+/* Add these styles to your CSS */
+.glass-morphism {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.animate-gradient {
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+}
+
+.recording-wave span {
+    display: inline-block;
+    width: 3px;
+    height: 15px;
+    margin: 0 2px;
+    background: linear-gradient(to bottom, #8B5CF6, #6366F1);
+    animation: wave 1s ease-in-out infinite;
+}
+
+.recording-wave span:nth-child(2) { animation-delay: 0.1s; }
+.recording-wave span:nth-child(3) { animation-delay: 0.2s; }
+.recording-wave span:nth-child(4) { animation-delay: 0.3s; }
+
+.btn-primary {
+    @apply px-6 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl
+           hover:shadow-lg hover:shadow-indigo-500/30 transition-all;
+}
+
+.btn-icon {
+    @apply p-2 rounded-full bg-white/5 border border-indigo-500/20 
+           hover:bg-white/10 transition-all text-gray-400 hover:text-white;
+}
+
+.icon-bounce {
+    animation: bounce 2s infinite;
+}
+
+@keyframes wave {
+    0%, 100% { transform: scaleY(0.5); }
+    50% { transform: scaleY(1); }
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(139, 92, 246, 0.5) rgba(255, 255, 255, 0.1);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(139, 92, 246, 0.5);
+    border-radius: 3px;
+}
+</style>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('*********************************************')
+let mediaRecorder;
+let audioChunks = [];
+let recordingTimer;
+let recordingStartTime;
 
-        const form = document.getElementById('qaForm');
-        if (form) {
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const formData = new FormData(form);
-                const button = form.querySelector('button[type="submit"]');
-                const originalButtonText = button.innerHTML;
-                
-                try {
-                    console.log('*********************************************')
-                    button.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Analyzing...`;
-                    button.disabled = true;
-                    console.log('*********************************************')
-
-                    const response = await fetch(form.action, {
-                        method: 'POST',
-                        body: formData,
-                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                    });
-
-                    if (!response.ok) throw new Error(await response.text());
-                    
-                    const data = await response.json();
-                    console.log('AI Response:', data.ai_response);
-                    
-                    document.getElementById('responseContainer').classList.remove('hidden');
-                    
-                    // Ensure Marked.js is loaded before calling it
-                    if (typeof marked !== 'undefined') {
-                        document.getElementById('aiResponse').innerHTML = marked.parse(data.ai_response);
-                    } else {
-                        console.error("Marked.js is not loaded properly.");
-                        document.getElementById('aiResponse').innerText = data.ai_response;
-                    }
-
-                    // Initialize syntax highlighting for code blocks
-                    document.querySelectorAll('pre code').forEach((block) => {
-                        hljs.highlightBlock(block);
-                    });
-                } catch (error) {
-                    console.error('Error:', error);
-                    showError('Error processing request: ' + error.message);
-                } finally {
-                    button.innerHTML = originalButtonText;
-                    button.disabled = false;
-                }
-            });
+document.addEventListener('DOMContentLoaded', function() {
+    const recordButton = document.getElementById('recordButton');
+    const recordingStatus = document.getElementById('recordingStatus');
+    const recordingTime = document.getElementById('recordingTime');
+    const recordingIndicator = document.getElementById('recordingIndicator');
+    
+    // Request microphone access
+    async function setupRecording() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            
+            mediaRecorder.ondataavailable = (event) => {
+                audioChunks.push(event.data);
+            };
+            
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                await processAudio(audioBlob);
+            };
+            
+            return true;
+        } catch (err) {
+            showError('Microphone access denied: ' + err.message);
+            return false;
+        }
+    }
+    
+    // Handle recording button click
+    recordButton.addEventListener('click', async function() {
+        if (!mediaRecorder) {
+            const setup = await setupRecording();
+            if (!setup) return;
+        }
+        
+        if (mediaRecorder.state === 'inactive') {
+            // Start recording
+            audioChunks = [];
+            mediaRecorder.start();
+            recordingStartTime = Date.now();
+            recordingStatus.classList.remove('hidden');
+            recordingIndicator.classList.remove('hidden');
+            
+            // Update recording timer
+            recordingTimer = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+                const minutes = Math.floor(elapsed / 60);
+                const seconds = elapsed % 60;
+                recordingTime.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+            
+        } else {
+            // Stop recording
+            mediaRecorder.stop();
+            clearInterval(recordingTimer);
+            recordingStatus.classList.add('hidden');
+            recordingIndicator.classList.add('hidden');
         }
     });
+    
+    // Process recorded audio
+    async function processAudio(audioBlob) {
+        const formData = new FormData();
+        formData.append('audio', audioBlob);
+        
+        const document = document.querySelector('input[name="document"]').files[0];
+        if (document) {
+            formData.append('document', document);
+        }
+        
+        try {
+            showLoading('Processing audio...');
+            
+            const response = await fetch('{% url "process_voice" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                // Show transcription
+                document.getElementById('transcriptionContainer').classList.remove('hidden');
+                document.getElementById('transcriptionText').textContent = data.transcription;
+                
+                // Show AI response
+                document.getElementById('responseContainer').classList.remove('hidden');
+                document.getElementById('aiResponse').innerHTML = marked.parse(data.ai_response);
+                
+                // Initialize syntax highlighting
+                document.querySelectorAll('pre code').forEach((block) => {
+                    hljs.highlightBlock(block);
+                });
+            } else {
+                throw new Error(data.error);
+            }
+        } catch (error) {
+            showError('Error processing audio: ' + error.message);
+        } finally {
+            hideLoading();
+        }
+    }
+});
+
+// Add new audio playback functionality
+let audioPlayer = new Audio();
+
+function playAudioResponse(audioUrl) {
+    audioPlayer.src = audioUrl;
+    audioPlayer.play();
+    
+    document.getElementById('playAudioBtn').classList.add('hidden');
+    document.getElementById('pauseAudioBtn').classList.remove('hidden');
+}
+
+function addMessageToChat(message, isUser = false) {
+    const chatMessages = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `flex ${isUser ? 'justify-end' : 'justify-start'}`;
+    
+    messageDiv.innerHTML = `
+        <div class="max-w-3/4 ${isUser ? 'bg-violet-600' : 'bg-white/5'} rounded-xl p-4">
+            <div class="flex items-center mb-2">
+                <div class="w-8 h-8 rounded-full ${isUser ? 'bg-violet-500' : 'bg-indigo-500'} flex items-center justify-center mr-2">
+                    <i class="fas ${isUser ? 'fa-user' : 'fa-robot'}"></i>
+                </div>
+                <span class="text-sm font-medium">${isUser ? 'You' : 'AI Assistant'}</span>
+            </div>
+            <p class="text-sm">${message}</p>
+        </div>
+    `;
+    
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// Initialize drag and drop
+const dropZone = document.getElementById('dropZone');
+
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, preventDefaults, false);
+});
+
+function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+}
+
+dropZone.addEventListener('drop', handleDrop, false);
+
+function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    handleFiles(files);
+}
+
+function handleFiles(files) {
+    if (files.length > 0) {
+        const file = files[0];
+        processDocument(file);
+    }
+}
+
+async function processDocument(file) {
+    const formData = new FormData();
+    formData.append('document', file);
+    
+    try {
+        const response = await fetch('{% url "process_document" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            document.getElementById('summaryContainer').classList.remove('hidden');
+            document.getElementById('summaryText').textContent = data.summary;
+            
+            if (data.audio_url) {
+                document.getElementById('readSummaryBtn').onclick = () => playAudioResponse(data.audio_url);
+            }
+        } else {
+            throw new Error(data.error);
+        }
+    } catch (error) {
+        showError('Error processing document: ' + error.message);
+    }
+}
 </script>
 
-<!-- <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('*********************************************')
-
-        const form = document.getElementById('qaForm');
-        if (form) {
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const formData = new FormData(form);
-                const button = form.querySelector('button[type="submit"]');
-                const originalButtonText = button.innerHTML;
-                
-                try {
-                    console.log('*********************************************')
-                    button.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Analyzing...`;
-                    button.disabled = true;
-                    console.log('*********************************************')
-
-                    const response = await fetch(form.action, {
-                        method: 'POST',
-                        body: formData,
-                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                    });
-
-                    if (!response.ok) throw new Error(await response.text());
-                    
-                    const data = await response.json();
-                    console.log('AI Response:', data.ai_response);
-                    
-                    document.getElementById('responseContainer').classList.remove('hidden');
-                    document.getElementById('aiResponse').innerHTML = marked.parse(data.ai_response);
-                    
-                    // Initialize syntax highlighting for code blocks
-                    document.querySelectorAll('pre code').forEach((block) => {
-                        hljs.highlightBlock(block);
-                    });
-                } catch (error) {
-                    console.error('Error:', error);
-                    showError('Error processing request: ' + error.message);
-                } finally {
-                    button.innerHTML = originalButtonText;
-                    button.disabled = false;
-                }
-            });
-        }
-    });
-</script> -->
+<!-- Add Marked.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>

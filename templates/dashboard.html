@@ -1,120 +1,678 @@
-<!-- dashboard.html -->
 {% extends 'base.html' %}
 
-{% block title %}Dashboard - KuizDoc{% endblock %}
-
 {% block content %}
-<div class="space-y-8 animate-fade-in">
+<div class="bg-gradient-to-br from-[#121533] via-[#1a2347] to-[#0c0e1a] min-h-screen text-gray-100 p-8">
     <!-- Header Section -->
-    <div class="flex justify-between items-center">
-        <div>
-            <h1 class="text-4xl font-bold text-white mb-2">Welcome back, {{ user.username }} 👋</h1>
-            <p class="text-white/80">Your daily learning insights</p>
+    <header class="relative mb-12 overflow-hidden rounded-3xl">
+        <div id="particle-background" class="absolute inset-0 z-0"></div>
+        <div class="relative z-10 p-8 text-center">
+            <h1 class="text-5xl font-bold mb-4 animate-gradient-text bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500">
+                Welcome, {{ user.username }}
+            </h1>
+            <p class="text-xl text-gray-300 max-w-2xl mx-auto animate-fade-in">
+                Your intelligent learning companion is ready to transform your study experience
+            </p>
         </div>
-        <div class="relative group">
-            <div class="w-14 h-14 rounded-full bg-gradient-to-r from-violet-600 to-pink-400 cursor-pointer hover:scale-105 transition-transform"></div>
-            <div class="absolute right-0 mt-2 hidden group-hover:block w-48 bg-white/90 rounded-lg shadow-xl p-2">
-                <a href="#" class="block px-4 py-3 hover:bg-violet-50 rounded-lg">Profile</a>
-                <a href="#" class="block px-4 py-3 hover:bg-violet-50 rounded-lg">Settings</a>
-                <a href="#" class="block px-4 py-3 hover:bg-violet-50 rounded-lg text-red-500">Logout</a>
-            </div>
-        </div>
-    </div>
+    </header>
 
-    <!-- Stats Grid with Hover Effects -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {% for stat in stats %}
-        <div class="glass-card p-6 text-center hover:bg-white/10 transition-all group">
-            <div class="flex justify-center mb-4">
-                <div class="p-3 rounded-full bg-gradient-to-r from-violet-600/20 to-pink-400/20">
-                    {{ stat.icon|safe }}
-                </div>
-            </div>
-            <div class="text-4xl font-bold bg-gradient-to-r from-violet-600 to-pink-400 bg-clip-text text-transparent shimmer">
-                {{ stat.value }}
-            </div>
-            <div class="text-white/80 mt-2">{{ stat.label }}</div>
-            <div class="h-1 bg-gradient-to-r from-violet-600 to-pink-400 mt-4 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-        </div>
-        {% endfor %}
-    </div>
-
-    <!-- Interactive Progress Dashboard -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Enhanced Progress Chart -->
-        <div class="glass-card p-6 h-96 relative">
+    <!-- Analytics Dashboard -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+        <!-- Learning Progress Card -->
+        <article class="dashboard-card hover-effect-purple">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-semibold">Learning Progress</h2>
-                <div class="flex gap-2">
-                    <button class="chart-filter active" data-range="week">Week</button>
-                    <button class="chart-filter" data-range="month">Month</button>
-                    <button class="chart-filter" data-range="year">Year</button>
+                <h2 class="dashboard-card-title">Learning Progress</h2>
+                <div class="flex space-x-2">
+                    <button class="time-filter-btn">Week</button>
+                    <button class="time-filter-btn">Month</button>
                 </div>
             </div>
-            <canvas id="progressChart" class="hover:cursor-crosshair"></canvas>
-            <div id="chartTooltip" class="hidden absolute bg-white/90 p-3 rounded-lg shadow-lg text-sm"></div>
-        </div>
+            <canvas id="learningProgressChart" class="w-full h-64"></canvas>
+        </article>
 
-        <!-- New Activity Feed -->
-        <div class="glass-card p-6 h-96 overflow-y-auto">
-            <h2 class="text-xl font-semibold mb-6">Recent Activity</h2>
+        <!-- Document Insights Card -->
+        <article class="dashboard-card hover-effect-cyan">
+            <h2 class="dashboard-card-title mb-6">Document Insights</h2>
             <div class="space-y-4">
-                {% for activity in activities %}
-                <div class="flex items-start p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-all">
-                    <div class="w-8 h-8 rounded-full bg-gradient-to-r from-violet-600 to-pink-400 mr-4"></div>
+                <div class="metric-card">
                     <div>
-                        <p class="font-medium">{{ activity.title }}</p>
-                        <p class="text-sm text-white/60">{{ activity.timestamp }}</p>
+                        <h3 class="metric-title">Total Documents</h3>
+                        <p class="metric-value">{{ total_documents }}</p>
                     </div>
+                    <i class="fas fa-file-alt metric-icon"></i>
+                </div>
+                <div class="metric-card">
+                    <div>
+                        <h3 class="metric-title">Analysis Completed</h3>
+                        <p class="metric-value">{{ analyzed_documents }}</p>
+                    </div>
+                    <i class="fas fa-chart-pie metric-icon"></i>
+                </div>
+            </div>
+        </article>
+
+        <!-- Achievements Card -->
+        <article class="dashboard-card hover-effect-pink">
+            <h2 class="dashboard-card-title mb-6">Achievements</h2>
+            <div class="grid grid-cols-3 gap-4">
+                {% for achievement in achievements %}
+                <div class="achievement-item">
+                    <div class="achievement-icon">
+                        <i class="{{ achievement.icon }} text-2xl text-white"></i>
+                    </div>
+                    <p class="achievement-label">{{ achievement.name }}</p>
                 </div>
                 {% endfor %}
             </div>
-        </div>
-    </div>
+        </article>
+    </section>
 
-    <!-- Enhanced Q&A Section -->
-    {% include 'components/qa_section.html' %}
-    
-    <!-- Gamified Quiz Section -->
-    {% include 'components/quiz_section.html' %}
+    <!-- Document Interaction Section -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Document Management Column -->
+        <div class="lg:col-span-1 space-y-6">
+            <!-- Upload Card -->
+            <div class="dashboard-card">
+                <h2 class="text-xl font-semibold mb-4 flex items-center">
+                    <i class="fas fa-cloud-upload-alt mr-3 text-indigo-400"></i>
+                    Document Upload
+                </h2>
+                
+                <div id="dropZone" class="upload-container group">
+                    <input type="file" id="documentUpload" class="hidden" accept=".pdf,.docx,.txt" multiple>
+                    <label for="documentUpload" class="cursor-pointer">
+                        <div class="upload-icon">
+                            <i class="fas fa-cloud-upload-alt text-4xl text-indigo-400 mb-4"></i>
+                        </div>
+                        <h3 class="upload-title text-lg font-medium mb-2">Upload Documents</h3>
+                        <p class="upload-subtitle text-sm text-gray-400">
+                            Drag and drop your files here or click to browse
+                        </p>
+                        <div class="mt-4 text-xs text-gray-500">
+                            <span class="inline-flex items-center px-2 py-1 bg-gray-800/50 rounded-lg mr-2">
+                                <i class="fas fa-file-pdf mr-1"></i> PDF
+                            </span>
+                            <span class="inline-flex items-center px-2 py-1 bg-gray-800/50 rounded-lg mr-2">
+                                <i class="fas fa-file-word mr-1"></i> DOCX
+                            </span>
+                            <span class="inline-flex items-center px-2 py-1 bg-gray-800/50 rounded-lg">
+                                <i class="fas fa-file-alt mr-1"></i> TXT
+                            </span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Document List Card -->
+            <div class="dashboard-card">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold flex items-center">
+                        <i class="fas fa-folder-open mr-3 text-indigo-400"></i>
+                        Your Documents
+                    </h2>
+                    <div class="flex space-x-2">
+                        <button class="p-2 hover:bg-gray-800/50 rounded-lg text-gray-400 hover:text-white">
+                            <i class="fas fa-sort-alpha-down"></i>
+                        </button>
+                        <button class="p-2 hover:bg-gray-800/50 rounded-lg text-gray-400 hover:text-white">
+                            <i class="fas fa-filter"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="uploadedDocuments" class="space-y-4">
+                    <!-- Document items will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Quick Stats Card -->
+            <div class="dashboard-card">
+                <h2 class="text-xl font-semibold mb-4 flex items-center">
+                    <i class="fas fa-chart-pie mr-3 text-indigo-400"></i>
+                    Document Stats
+                </h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="p-4 bg-gray-800/30 rounded-xl">
+                        <p class="text-sm text-gray-400">Total Documents</p>
+                        <p class="text-2xl font-semibold mt-1">{{ total_documents }}</p>
+                    </div>
+                    <div class="p-4 bg-gray-800/30 rounded-xl">
+                        <p class="text-sm text-gray-400">Pages Analyzed</p>
+                        <p class="text-2xl font-semibold mt-1">{{ total_pages }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Analysis Column -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Document Summary Card -->
+            <div id="documentSummary" class="dashboard-card hidden animate-slide-in">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold flex items-center">
+                        <i class="fas fa-file-alt mr-3 text-indigo-400"></i>
+                        Document Summary
+                    </h2>
+                    <div class="flex space-x-3">
+                        <button class="btn-icon" title="Copy to clipboard">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <button class="btn-icon" title="Download summary">
+                            <i class="fas fa-download"></i>
+                        </button>
+                        <button class="btn-icon" title="Read aloud">
+                            <i class="fas fa-volume-up"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="summary-container bg-gray-800/30 p-6 rounded-xl">
+                    <div id="summaryText" class="prose prose-invert max-w-none">
+                        <!-- Summary content will be inserted here -->
+                    </div>
+                    
+                    <div class="flex flex-wrap gap-4 mt-6">
+                        <button class="btn-primary">
+                            <i class="fas fa-brain mr-2"></i>
+                            Generate Quiz
+                        </button>
+                        <button class="btn-secondary">
+                            <i class="fas fa-lightbulb mr-2"></i>
+                            Key Insights
+                        </button>
+                        <button class="btn-secondary">
+                            <i class="fas fa-comments mr-2"></i>
+                            Discussion Points
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Chat Card -->
+            <div class="dashboard-card">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold flex items-center">
+                        <i class="fas fa-comments mr-3 text-indigo-400"></i>
+                        Document Q&A
+                    </h2>
+                    <div class="flex items-center space-x-4">
+                        <select class="bg-gray-800/30 border border-gray-700 rounded-lg px-3 py-2 text-sm">
+                            <option value="casual">Casual Mode</option>
+                            <option value="academic">Academic Mode</option>
+                            <option value="expert">Expert Mode</option>
+                        </select>
+                        <button class="btn-icon" title="Clear chat">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="chat-container bg-gray-800/30 rounded-xl">
+                    <div id="chatMessages" class="chat-messages p-6 space-y-4 max-h-[400px] overflow-y-auto">
+                        <!-- Welcome message -->
+                        <div class="chat-message bot-message">
+                            <div class="message-avatar">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <div class="message-content">
+                                <p class="message-sender">AI Assistant</p>
+                                <p>Hello! I'm here to help you understand your documents better. You can ask me questions about the content, request summaries, or get clarification on specific topics.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="chat-input-container p-4 border-t border-gray-700">
+                        <div class="flex items-center space-x-4">
+                            <button id="voiceInputBtn" class="btn-icon" title="Voice input">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                            <div class="flex-1 relative">
+                                <input type="text" 
+                                       id="chatInput"
+                                       class="chat-input w-full bg-gray-800/50 border border-gray-700 rounded-xl px-4 py-3 pr-12"
+                                       placeholder="Ask about your document...">
+                                <button class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                            <button class="btn-icon" title="Upload attachment">
+                                <i class="fas fa-paperclip"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Suggestion chips -->
+                        <div class="flex flex-wrap gap-2 mt-4">
+                            <button class="suggestion-chip">
+                                Summarize key points
+                            </button>
+                            <button class="suggestion-chip">
+                                Explain difficult concepts
+                            </button>
+                            <button class="suggestion-chip">
+                                Generate study questions
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/particles.js/particles.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
-    // Enhanced Chart Configuration
-    const chartConfig = {
+// Configuration and Constants
+const API_ENDPOINTS = {
+    PROCESS_DOCUMENT: '/process-document/',
+    GENERATE_QUIZ: '/generate-quiz/',
+    CHAT_INTERACTION: '/chat-interaction/',
+    PROCESS_VOICE: '/process-voice/'
+};
+
+// CSRF Token Handling
+const getCSRFToken = () => {
+    const cookieValue = document.cookie.match(/csrftoken=([^ ;]+)/);
+    return cookieValue ? cookieValue[1] : null;
+};
+
+// UI Utilities
+const UI = {
+    showLoading: (message) => {
+        const loadingHTML = `
+            <div id="loadingOverlay" class="loading-overlay">
+                <div class="loading-content">
+                    <div class="loading-spinner"></div>
+                    <p>${message}</p>
+                </div>
+            </div>`;
+        document.body.insertAdjacentHTML('beforeend', loadingHTML);
+    },
+
+    hideLoading: () => {
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay) overlay.remove();
+    },
+
+    showError: (message) => {
+        const errorHTML = `
+            <div class="error-toast">
+                <i class="fas fa-exclamation-circle mr-2"></i>
+                ${message}
+            </div>`;
+        const toast = document.createElement('div');
+        toast.innerHTML = errorHTML;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 5000);
+    }
+};
+
+// Chart Initialization
+const initProgressChart = () => {
+    const ctx = document.getElementById('learningProgressChart').getContext('2d');
+    return new Chart(ctx, {
         type: 'line',
         data: {
             labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
             datasets: [{
-                label: 'Progress',
+                label: 'Learning Progress',
                 data: [65, 78, 82, 75, 90, 85, 88],
-                backgroundColor: 'rgba(138, 43, 226, 0.2)',
-                borderColor: 'rgba(138, 43, 226, 1)',
-                borderWidth: 2,
+                borderColor: 'rgba(45, 211, 172, 1)',
+                backgroundColor: 'rgba(45, 211, 172, 0.2)',
                 tension: 0.4,
-                pointRadius: 5,
-                pointHoverRadius: 8
+                borderWidth: 3
             }]
         },
         options: {
             responsive: true,
-            plugins: {
-                tooltip: {
-                    enabled: false,
-                    external: (context) => {
-                        // Custom tooltip implementation
-                    }
-                }
-            },
             scales: {
-                y: {
+                y: { 
                     beginAtZero: true,
                     grid: { color: 'rgba(255,255,255,0.1)' }
                 },
-                x: { grid: { color: 'rgba(255,255,255,0.1)' } }
+                x: { 
+                    grid: { color: 'rgba(255,255,255,0.1)' } 
+                }
             },
-            animation: { duration: 1000 }
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+};
+
+// Document Upload Handler
+const setupDocumentUpload = () => {
+    const uploadInput = document.getElementById('documentUpload');
+    const uploadedDocumentsList = document.getElementById('uploadedDocuments');
+    const dropZone = document.getElementById('dropZone');
+
+    const createDocumentItem = (file) => {
+        const itemHTML = `
+            <div class="document-item" data-file="${file.name}">
+                <div class="document-icon">
+                    <i class="${getFileIcon(file)}"></i>
+                </div>
+                <div class="document-details">
+                    <h4 class="document-title">${file.name}</h4>
+                    <div class="document-progress">
+                        <div class="progress-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="document-status">
+                    <span class="status-badge status-uploading">Uploading</span>
+                </div>
+            </div>`;
+        uploadedDocumentsList.insertAdjacentHTML('beforeend', itemHTML);
+        return uploadedDocumentsList.lastElementChild;
+    };
+
+    const updateDocumentStatus = (fileName, status, summary) => {
+        const item = uploadedDocumentsList.querySelector(`[data-file="${fileName}"]`);
+        if (item) {
+            const statusElement = item.querySelector('.status-badge');
+            const progressBar = item.querySelector('.progress-bar');
+            
+            statusElement.className = `status-badge status-${status}`;
+            statusElement.textContent = status;
+
+            if (status === 'processed') {
+                progressBar.style.width = '100%';
+                item.addEventListener('click', () => showDocumentSummary(summary));
+            }
         }
     };
+
+    const handleUpload = async (files) => {
+        const uploadPromises = Array.from(files).map(async (file) => {
+            const listItem = createDocumentItem(file);
+            const formData = new FormData();
+            formData.append('document', file);
+
+            try {
+                const response = await fetch(API_ENDPOINTS.PROCESS_DOCUMENT, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': getCSRFToken()
+                    }
+                });
+
+                if (!response.ok) throw new Error('Upload failed');
+                
+                const data = await response.json();
+                updateDocumentStatus(file.name, 'processed', data.summary);
+                return data;
+
+            } catch (error) {
+                updateDocumentStatus(file.name, 'failed');
+                console.error(`Upload failed for ${file.name}:`, error);
+                return null;
+            }
+        });
+
+        try {
+            UI.showLoading('Processing documents...');
+            const results = await Promise.all(uploadPromises);
+            const successfulUploads = results.filter(r => r !== null);
+            
+            if (successfulUploads.length > 0) {
+                document.getElementById('documentSummary').classList.remove('hidden');
+                document.getElementById('summaryText').innerHTML = successfulUploads
+                    .map(r => marked.parse(r.summary))
+                    .join('<hr class="my-4 border-t-2 border-purple-800">');
+            }
+        } catch (error) {
+            UI.showError('Error processing documents');
+        } finally {
+            UI.hideLoading();
+        }
+    };
+
+    // Add drag and drop handlers
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(event => {
+        dropZone.addEventListener(event, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        }, false);
+    });
+
+    ['dragenter', 'dragover'].forEach(event => {
+        dropZone.addEventListener(event, () => {
+            dropZone.classList.add('dragover');
+        }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(event => {
+        dropZone.addEventListener(event, () => {
+            dropZone.classList.remove('dragover');
+        }, false);
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        const files = e.dataTransfer.files;
+        if (files.length) {
+            handleUpload(files);
+        }
+    });
+
+    uploadInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleUpload(e.target.files);
+        }
+    });
+};
+
+// Add helper function for file icons
+const getFileIcon = (file) => {
+    const extension = file.name.split('.').pop().toLowerCase();
+    const iconMap = {
+        pdf: 'fas fa-file-pdf',
+        docx: 'fas fa-file-word',
+        txt: 'fas fa-file-alt'
+    };
+    return iconMap[extension] || 'fas fa-file';
+};
+
+// Chat System
+const setupChatSystem = () => {
+    const chatInput = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendMessageBtn');
+    const chatMessages = document.getElementById('chatMessages');
+
+    const addMessage = (text, isUser) => {
+        const messageHTML = `
+            <div class="chat-message ${isUser ? 'user-message' : 'bot-message'}">
+                <div class="message-content">${text}</div>
+            </div>`;
+        chatMessages.insertAdjacentHTML('beforeend', messageHTML);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    };
+
+    const handleSendMessage = async () => {
+        const message = chatInput.value.trim();
+        if (!message) return;
+
+        addMessage(message, true);
+        chatInput.value = '';
+
+        try {
+            const response = await fetch(API_ENDPOINTS.CHAT_INTERACTION, {
+                method: 'POST',
+                body: JSON.stringify({ question: message }),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                }
+            });
+
+            if (!response.ok) throw new Error('Chat response error');
+            
+            const data = await response.json();
+            addMessage(data.text_response, false);
+
+        } catch (error) {
+            UI.showError(`Chat error: ${error.message}`);
+        }
+    };
+
+    sendBtn.addEventListener('click', handleSendMessage);
+    chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleSendMessage();
+    });
+};
+
+// Add these functions to handle voice interaction
+const handleVoiceInteraction = async (audioBlob, activeDocument = null) => {
+    const formData = new FormData();
+    formData.append('audio', audioBlob, 'recording.wav');
+    
+    if (activeDocument) {
+        formData.append('document', activeDocument);
+    }
+
+    try {
+        UI.showLoading('Processing voice input...');
+        
+        const response = await fetch('/api/process-voice/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': getCSRFToken()
+            }
+        });
+
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to process voice input');
+        }
+
+        // Add transcription to chat
+        addMessageToChat(data.transcription, true);
+
+        // Add AI response to chat
+        addMessageToChat(data.ai_response, false);
+
+        // Handle audio response if available
+        if (data.audio_url) {
+            const audioPlayer = new Audio(data.audio_url);
+            document.getElementById('playAudioBtn').onclick = () => {
+                audioPlayer.play();
+                document.getElementById('playAudioBtn').classList.add('hidden');
+                document.getElementById('pauseAudioBtn').classList.remove('hidden');
+            };
+            
+            document.getElementById('pauseAudioBtn').onclick = () => {
+                audioPlayer.pause();
+                document.getElementById('pauseAudioBtn').classList.add('hidden');
+                document.getElementById('playAudioBtn').classList.remove('hidden');
+            };
+
+            // Show audio controls
+            document.getElementById('playAudioBtn').classList.remove('hidden');
+        }
+
+    } catch (error) {
+        UI.showError(`Error: ${error.message}`);
+    } finally {
+        UI.hideLoading();
+    }
+};
+
+// Update the existing processAudio function
+async function processAudio(audioBlob) {
+    const activeDocument = document.querySelector('input[name="document"]').files[0];
+    await handleVoiceInteraction(audioBlob, activeDocument);
+}
+
+// Initialization
+document.addEventListener('DOMContentLoaded', () => {
+    particlesJS('particle-background', {/*... particle config ...*/});
+    initProgressChart();
+    setupDocumentUpload();
+    setupChatSystem();
+});
 </script>
+
+<style>
+/* Add custom styles here for consistency */
+.document-item {
+    @apply bg-[#2a3056] p-4 rounded-xl flex items-center space-x-4 transition-all hover:bg-purple-600/20 cursor-pointer;
+}
+
+.document-progress {
+    @apply bg-gray-800 rounded-full h-2 w-32 overflow-hidden;
+}
+
+.progress-bar {
+    @apply bg-purple-500 h-full transition-all duration-300;
+}
+
+.status-badge {
+    @apply px-2 py-1 rounded-full text-xs font-medium;
+}
+
+.status-uploading { @apply bg-cyan-500/20 text-cyan-400; }
+.status-processed { @apply bg-green-500/20 text-green-400; }
+.status-failed { @apply bg-red-500/20 text-red-400; }
+
+.dragover {
+    @apply border-cyan-500 bg-purple-900/20;
+}
+
+/* Add these new styles */
+.btn-primary {
+    @apply px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-lg
+           hover:shadow-lg hover:shadow-indigo-500/20 transition-all text-sm font-medium;
+}
+
+.btn-secondary {
+    @apply px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg
+           hover:bg-gray-800 transition-all text-sm font-medium;
+}
+
+.btn-icon {
+    @apply p-2 hover:bg-gray-800/50 rounded-lg text-gray-400 hover:text-white transition-all;
+}
+
+.suggestion-chip {
+    @apply px-3 py-1 bg-gray-800/50 border border-gray-700 rounded-full text-sm
+           hover:bg-gray-800 hover:border-indigo-500 transition-all;
+}
+
+.chat-message {
+    @apply flex items-start space-x-4;
+}
+
+.message-avatar {
+    @apply w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white;
+}
+
+.message-content {
+    @apply flex-1 bg-gray-800/50 rounded-xl p-4;
+}
+
+.message-sender {
+    @apply text-sm font-medium text-indigo-400 mb-1;
+}
+
+.bot-message .message-content {
+    @apply bg-gray-800/50;
+}
+
+.user-message {
+    @apply flex-row-reverse space-x-reverse;
+}
+
+.user-message .message-content {
+    @apply bg-indigo-600/30;
+}
+
+.user-message .message-avatar {
+    @apply bg-violet-600;
+}
+
+/* ... existing styles ... */
+</style>
 {% endblock %}
