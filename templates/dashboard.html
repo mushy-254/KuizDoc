@@ -5,36 +5,36 @@
 
 {% block content %}
 <div class="space-y-8 animate-fade-in">
-    <!-- Header Section -->
-    <div class="flex justify-between items-center">
+    <!-- Improved Header Section with Better Contrast -->
+    <div class="flex justify-between items-center pb-6 border-b border-white/20">
         <div>
             <h1 class="text-4xl font-bold text-white mb-2">Welcome back, {{ user.username }} 👋</h1>
-            <p class="text-white/80">Your daily learning insights</p>
+            <p class="text-gray-200">Your daily learning insights</p>
         </div>
         <div class="relative group">
-            <div class="w-14 h-14 rounded-full bg-gradient-to-r from-violet-600 to-pink-400 cursor-pointer hover:scale-105 transition-transform"></div>
-            <div class="absolute right-0 mt-2 hidden group-hover:block w-48 bg-white/90 rounded-lg shadow-xl p-2">
-                <a href="#" class="block px-4 py-3 hover:bg-violet-50 rounded-lg">Profile</a>
-                <a href="#" class="block px-4 py-3 hover:bg-violet-50 rounded-lg">Settings</a>
-                <a href="#" class="block px-4 py-3 hover:bg-violet-50 rounded-lg text-red-500">Logout</a>
+            <button aria-label="User menu" class="w-14 h-14 rounded-full bg-gradient-to-r from-violet-600 to-pink-400 cursor-pointer hover:scale-105 transition-transform focus:outline-none focus:ring-2 focus:ring-violet-400">
+                <span class="sr-only">Open user menu</span>
+            </button>
+            <div class="absolute right-0 mt-2 hidden group-hover:block w-48 bg-gray-800/95 rounded-lg shadow-xl p-2 border border-gray-700">
+                <a href="#" class="block px-4 py-3 hover:bg-gray-700 rounded-lg text-gray-100">Profile</a>
+                <a href="#" class="block px-4 py-3 hover:bg-gray-700 rounded-lg text-gray-100">Settings</a>
+                <a href="#" class="block px-4 py-3 hover:bg-gray-700 rounded-lg text-red-400 hover:text-red-300">Logout</a>
             </div>
         </div>
     </div>
 
-    <!-- Stats Grid with Hover Effects -->
+    <!-- Enhanced Stats Grid with Better Visibility -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
         <!-- Total Documents -->
         <div class="glass-card p-6 text-center hover:bg-white/10 transition-all group">
             <div class="flex justify-center mb-4">
-                <div class="p-3 rounded-full bg-gradient-to-r from-violet-600/20 to-pink-400/20">
-                    <i class="fas fa-file-alt text-2xl text-violet-400"></i>
+                <div class="p-3 rounded-full bg-violet-500/20">
+                    <i class="fas fa-file-alt text-2xl text-violet-300"></i>
                 </div>
             </div>
-            <div class="text-4xl font-bold bg-gradient-to-r from-violet-400 to-pink-400 bg-clip-text text-transparent shimmer">
-                156
-            </div>
-            <div class="text-white/80 mt-2">Total Documents</div>
-            <div class="text-green-400 text-sm mt-2">
+            <div class="text-4xl font-bold text-white mb-2">156</div>
+            <div class="text-gray-200 font-medium">Total Documents</div>
+            <div class="text-green-400 text-sm mt-2 font-medium">
                 <i class="fas fa-arrow-up"></i> 12% increase
             </div>
             <div class="h-1 bg-gradient-to-r from-violet-600 to-pink-400 mt-4 opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -43,15 +43,13 @@
         <!-- Questions Asked -->
         <div class="glass-card p-6 text-center hover:bg-white/10 transition-all group">
             <div class="flex justify-center mb-4">
-                <div class="p-3 rounded-full bg-gradient-to-r from-blue-600/20 to-cyan-400/20">
-                    <i class="fas fa-question-circle text-2xl text-blue-400"></i>
+                <div class="p-3 rounded-full bg-blue-500/20">
+                    <i class="fas fa-question-circle text-2xl text-blue-300"></i>
                 </div>
             </div>
-            <div class="text-4xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent shimmer">
-                2,847
-            </div>
-            <div class="text-white/80 mt-2">Questions Asked</div>
-            <div class="text-green-400 text-sm mt-2">
+            <div class="text-4xl font-bold text-white mb-2">2,847</div>
+            <div class="text-gray-200 font-medium">Questions Asked</div>
+            <div class="text-green-400 text-sm mt-2 font-medium">
                 <i class="fas fa-arrow-up"></i> 24% increase
             </div>
             <div class="h-1 bg-gradient-to-r from-blue-600 to-cyan-400 mt-4 opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -60,15 +58,13 @@
         <!-- Learning Streak -->
         <div class="glass-card p-6 text-center hover:bg-white/10 transition-all group">
             <div class="flex justify-center mb-4">
-                <div class="p-3 rounded-full bg-gradient-to-r from-orange-600/20 to-yellow-400/20">
-                    <i class="fas fa-fire text-2xl text-orange-400"></i>
+                <div class="p-3 rounded-full bg-orange-500/20">
+                    <i class="fas fa-fire text-2xl text-orange-300"></i>
                 </div>
             </div>
-            <div class="text-4xl font-bold bg-gradient-to-r from-orange-400 to-yellow-400 bg-clip-text text-transparent shimmer">
-                15
-            </div>
-            <div class="text-white/80 mt-2">Day Streak</div>
-            <div class="text-green-400 text-sm mt-2">
+            <div class="text-4xl font-bold text-white mb-2">15</div>
+            <div class="text-gray-200 font-medium">Day Streak</div>
+            <div class="text-green-400 text-sm mt-2 font-medium">
                 <i class="fas fa-fire"></i> Best: 21 days
             </div>
             <div class="h-1 bg-gradient-to-r from-orange-600 to-yellow-400 mt-4 opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -77,70 +73,50 @@
         <!-- Average Score -->
         <div class="glass-card p-6 text-center hover:bg-white/10 transition-all group">
             <div class="flex justify-center mb-4">
-                <div class="p-3 rounded-full bg-gradient-to-r from-green-600/20 to-emerald-400/20">
-                    <i class="fas fa-chart-line text-2xl text-green-400"></i>
+                <div class="p-3 rounded-full bg-green-500/20">
+                    <i class="fas fa-chart-line text-2xl text-green-300"></i>
                 </div>
             </div>
-            <div class="text-4xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent shimmer">
-                92%
-            </div>
-            <div class="text-white/80 mt-2">Average Score</div>
-            <div class="text-green-400 text-sm mt-2">
+            <div class="text-4xl font-bold text-white mb-2">92%</div>
+            <div class="text-gray-200 font-medium">Average Score</div>
+            <div class="text-green-400 text-sm mt-2 font-medium">
                 <i class="fas fa-trophy"></i> Top 5%
             </div>
             <div class="h-1 bg-gradient-to-r from-green-600 to-emerald-400 mt-4 opacity-0 group-hover:opacity-100 transition-opacity"></div>
         </div>
     </div>
 
-    <!-- Recent Activity Feed -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+    <!-- Enhanced Activity Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Progress Chart -->
-        <div class="glass-card p-6 h-96">
+        <div class="glass-card p-6">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-semibold">Learning Progress</h2>
+                <h2 class="text-xl font-semibold text-white">Learning Progress</h2>
                 <div class="flex gap-2">
                     <button class="chart-filter active px-4 py-2 rounded-full text-sm" data-period="week">Week</button>
                     <button class="chart-filter px-4 py-2 rounded-full text-sm" data-period="month">Month</button>
                     <button class="chart-filter px-4 py-2 rounded-full text-sm" data-period="year">Year</button>
                 </div>
             </div>
-            <canvas id="progressChart"></canvas>
+            <canvas id="progressChart" aria-label="Learning progress chart"></canvas>
         </div>
 
         <!-- Activity Feed -->
-        <div class="glass-card p-6 h-96 overflow-y-auto">
-            <h2 class="text-xl font-semibold mb-6">Recent Activity</h2>
+        <div class="glass-card p-6 max-h-96 overflow-y-auto">
+            <h2 class="text-xl font-semibold text-white mb-6">Recent Activity</h2>
             <div class="space-y-4">
-                <!-- Activity Items -->
+                <!-- Activity Items with Better Contrast -->
                 <div class="flex items-start p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-all">
                     <div class="w-10 h-10 rounded-full bg-gradient-to-r from-violet-600 to-pink-400 flex items-center justify-center">
                         <i class="fas fa-book-open text-white"></i>
                     </div>
                     <div class="ml-4">
-                        <p class="font-medium">Completed Chapter 5: Quantum Mechanics</p>
-                        <p class="text-sm text-white/60">2 hours ago</p>
+                        <p class="font-medium text-white">Completed Chapter 5: Quantum Mechanics</p>
+                        <p class="text-sm text-gray-300">2 hours ago</p>
                     </div>
                 </div>
-
-                <div class="flex items-start p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-all">
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-cyan-400 flex items-center justify-center">
-                        <i class="fas fa-trophy text-white"></i>
-                    </div>
-                    <div class="ml-4">
-                        <p class="font-medium">Achieved 100% on Physics Quiz</p>
-                        <p class="text-sm text-white/60">5 hours ago</p>
-                    </div>
-                </div>
-
-                <div class="flex items-start p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-all">
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-r from-orange-600 to-yellow-400 flex items-center justify-center">
-                        <i class="fas fa-file-upload text-white"></i>
-                    </div>
-                    <div class="ml-4">
-                        <p class="font-medium">Uploaded New Document: ML Basics</p>
-                        <p class="text-sm text-white/60">Yesterday</p>
-                    </div>
-                </div>
+                
+                <!-- Add more activity items here -->
             </div>
         </div>
     </div>
