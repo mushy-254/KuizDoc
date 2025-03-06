@@ -3,10 +3,28 @@
     <form method="POST" action="{% url 'ask_question' %}" enctype="multipart/form-data" id="qaForm">
         {% csrf_token %}
         <div class="space-y-4">
-            <input type="text" name="question" placeholder="Ask a question..." 
-                   class="w-full px-6 py-4 rounded-xl bg-white/5 backdrop-blur-lg border border-indigo-900/30
-                          focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/50">
+            <!-- Add voice input button -->
+            <div class="flex items-center gap-4">
+                <input type="text" name="question" id="questionInput" placeholder="Ask a question..." 
+                       class="flex-1 px-6 py-4 rounded-xl bg-white/5 backdrop-blur-lg border border-indigo-900/30
+                              focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/50">
+                <button type="button" id="voiceInputBtn" 
+                        class="p-4 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:shadow-lg hover:shadow-indigo-500/30 transition-all">
+                    <i class="fas fa-microphone"></i>
+                </button>
+            </div>
             
+            <!-- Add voice controls -->
+            <div class="flex items-center gap-4 text-sm text-gray-400">
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" id="autoPlayVoice" class="rounded border-gray-600">
+                    Auto-play AI voice response
+                </label>
+                <select id="voiceSelect" class="bg-white/5 border border-indigo-900/30 rounded-lg px-3 py-1">
+                    <!-- Voice options will be populated by JavaScript -->
+                </select>
+            </div>
+
             <div class="relative group">
                 <input type="file" name="document" id="documentInput" 
                        class="absolute opacity-0 w-full h-full cursor-pointer"
@@ -29,11 +47,17 @@
         </button>
     </form>
     <div id="responseContainer" class="mt-6 hidden">
-        <div class="flex items-center mb-3">
-            <div class="h-8 w-8 bg-indigo-500/20 rounded-full flex items-center justify-center mr-3">
-                <i class="fas fa-robot text-indigo-500"></i>
+        <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center">
+                <div class="h-8 w-8 bg-indigo-500/20 rounded-full flex items-center justify-center mr-3">
+                    <i class="fas fa-robot text-indigo-500"></i>
+                </div>
+                <h3 class="text-lg font-semibold">AI Response:</h3>
             </div>
-            <h3 class="text-lg font-semibold">AI Response:</h3>
+            <!-- Add play button for response -->
+            <button id="playResponseBtn" class="p-2 rounded-full bg-indigo-500/20 hover:bg-indigo-500/30 transition-all">
+                <i class="fas fa-play"></i>
+            </button>
         </div>
         <div id="aiResponse" class="p-4 bg-white/5 rounded-lg prose prose-invert max-w-none"></div>
     </div>
@@ -43,8 +67,103 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('*********************************************')
-
+        const voiceInputBtn = document.getElementById('voiceInputBtn');
+        const questionInput = document.getElementById('questionInput');
+        const playResponseBtn = document.getElementById('playResponseBtn');
+        const voiceSelect = document.getElementById('voiceSelect');
+        const autoPlayVoice = document.getElementById('autoPlayVoice');
+        
+        let recognition = null;
+        let synthesis = window.speechSynthesis;
+        
+        // Initialize speech recognition
+        if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+            recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+            
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                questionInput.value = transcript;
+            };
+            
+            recognition.onerror = function(event) {
+                showToast('Speech recognition error: ' + event.error, 'error');
+            };
+        }
+        
+        // Populate voice select with available voices
+        function populateVoiceList() {
+            const voices = synthesis.getVoices();
+            voiceSelect.innerHTML = voices
+                .filter(voice => voice.lang.startsWith('en'))
+                .map(voice => `<option value="${voice.name}">${voice.name}</option>`)
+                .join('');
+        }
+        
+        synthesis.onvoiceschanged = populateVoiceList;
+        populateVoiceList();
+        
+        // Voice input button handler
+        voiceInputBtn.addEventListener('click', function() {
+            if (!recognition) {
+                showToast('Speech recognition is not supported in your browser', 'error');
+                return;
+            }
+            
+            if (voiceInputBtn.classList.contains('recording')) {
+                recognition.stop();
+                voiceInputBtn.classList.remove('recording');
+                voiceInputBtn.querySelector('i').classList.remove('fa-stop');
+                voiceInputBtn.querySelector('i').classList.add('fa-microphone');
+            } else {
+                recognition.start();
+                voiceInputBtn.classList.add('recording');
+                voiceInputBtn.querySelector('i').classList.remove('fa-microphone');
+                voiceInputBtn.querySelector('i').classList.add('fa-stop');
+            }
+        });
+        
+        // Play AI response
+        function playResponse(text) {
+            if (!synthesis) {
+                showToast('Text-to-speech is not supported in your browser', 'error');
+                return;
+            }
+            
+            // Stop any ongoing speech
+            synthesis.cancel();
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            const selectedVoice = synthesis.getVoices().find(voice => voice.name === voiceSelect.value);
+            if (selectedVoice) utterance.voice = selectedVoice;
+            
+            synthesis.speak(utterance);
+            
+            // Update button state
+            playResponseBtn.querySelector('i').classList.remove('fa-play');
+            playResponseBtn.querySelector('i').classList.add('fa-stop');
+            
+            utterance.onend = function() {
+                playResponseBtn.querySelector('i').classList.remove('fa-stop');
+                playResponseBtn.querySelector('i').classList.add('fa-play');
+            };
+        }
+        
+        // Play button handler
+        playResponseBtn.addEventListener('click', function() {
+            if (synthesis.speaking) {
+                synthesis.cancel();
+                playResponseBtn.querySelector('i').classList.remove('fa-stop');
+                playResponseBtn.querySelector('i').classList.add('fa-play');
+            } else {
+                const responseText = document.getElementById('aiResponse').innerText;
+                playResponse(responseText);
+            }
+        });
+        
+        // Modify the existing form submission to handle auto-play
         const form = document.getElementById('qaForm');
         if (form) {
             form.addEventListener('submit', async (e) => {
@@ -84,6 +203,10 @@
                     document.querySelectorAll('pre code').forEach((block) => {
                         hljs.highlightBlock(block);
                     });
+
+                    if (autoPlayVoice.checked) {
+                        playResponse(data.ai_response);
+                    }
                 } catch (error) {
                     console.error('Error:', error);
                     showError('Error processing request: ' + error.message);
@@ -96,50 +219,15 @@
     });
 </script>
 
-<!-- <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('*********************************************')
-
-        const form = document.getElementById('qaForm');
-        if (form) {
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const formData = new FormData(form);
-                const button = form.querySelector('button[type="submit"]');
-                const originalButtonText = button.innerHTML;
-                
-                try {
-                    console.log('*********************************************')
-                    button.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Analyzing...`;
-                    button.disabled = true;
-                    console.log('*********************************************')
-
-                    const response = await fetch(form.action, {
-                        method: 'POST',
-                        body: formData,
-                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                    });
-
-                    if (!response.ok) throw new Error(await response.text());
-                    
-                    const data = await response.json();
-                    console.log('AI Response:', data.ai_response);
-                    
-                    document.getElementById('responseContainer').classList.remove('hidden');
-                    document.getElementById('aiResponse').innerHTML = marked.parse(data.ai_response);
-                    
-                    // Initialize syntax highlighting for code blocks
-                    document.querySelectorAll('pre code').forEach((block) => {
-                        hljs.highlightBlock(block);
-                    });
-                } catch (error) {
-                    console.error('Error:', error);
-                    showError('Error processing request: ' + error.message);
-                } finally {
-                    button.innerHTML = originalButtonText;
-                    button.disabled = false;
-                }
-            });
-        }
-    });
-</script> -->
+<style>
+    /* Add recording animation */
+    .recording {
+        animation: pulse 1.5s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { background-color: rgba(139, 92, 246, 0.5); }
+        50% { background-color: rgba(99, 102, 241, 0.8); }
+        100% { background-color: rgba(139, 92, 246, 0.5); }
+    }
+</style>

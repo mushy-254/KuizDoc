@@ -22,52 +22,125 @@
     </div>
 
     <!-- Stats Grid with Hover Effects -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {% for stat in stats %}
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <!-- Total Documents -->
         <div class="glass-card p-6 text-center hover:bg-white/10 transition-all group">
             <div class="flex justify-center mb-4">
                 <div class="p-3 rounded-full bg-gradient-to-r from-violet-600/20 to-pink-400/20">
-                    {{ stat.icon|safe }}
+                    <i class="fas fa-file-alt text-2xl text-violet-400"></i>
                 </div>
             </div>
-            <div class="text-4xl font-bold bg-gradient-to-r from-violet-600 to-pink-400 bg-clip-text text-transparent shimmer">
-                {{ stat.value }}
+            <div class="text-4xl font-bold bg-gradient-to-r from-violet-400 to-pink-400 bg-clip-text text-transparent shimmer">
+                156
             </div>
-            <div class="text-white/80 mt-2">{{ stat.label }}</div>
+            <div class="text-white/80 mt-2">Total Documents</div>
+            <div class="text-green-400 text-sm mt-2">
+                <i class="fas fa-arrow-up"></i> 12% increase
+            </div>
             <div class="h-1 bg-gradient-to-r from-violet-600 to-pink-400 mt-4 opacity-0 group-hover:opacity-100 transition-opacity"></div>
         </div>
-        {% endfor %}
+
+        <!-- Questions Asked -->
+        <div class="glass-card p-6 text-center hover:bg-white/10 transition-all group">
+            <div class="flex justify-center mb-4">
+                <div class="p-3 rounded-full bg-gradient-to-r from-blue-600/20 to-cyan-400/20">
+                    <i class="fas fa-question-circle text-2xl text-blue-400"></i>
+                </div>
+            </div>
+            <div class="text-4xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent shimmer">
+                2,847
+            </div>
+            <div class="text-white/80 mt-2">Questions Asked</div>
+            <div class="text-green-400 text-sm mt-2">
+                <i class="fas fa-arrow-up"></i> 24% increase
+            </div>
+            <div class="h-1 bg-gradient-to-r from-blue-600 to-cyan-400 mt-4 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        </div>
+
+        <!-- Learning Streak -->
+        <div class="glass-card p-6 text-center hover:bg-white/10 transition-all group">
+            <div class="flex justify-center mb-4">
+                <div class="p-3 rounded-full bg-gradient-to-r from-orange-600/20 to-yellow-400/20">
+                    <i class="fas fa-fire text-2xl text-orange-400"></i>
+                </div>
+            </div>
+            <div class="text-4xl font-bold bg-gradient-to-r from-orange-400 to-yellow-400 bg-clip-text text-transparent shimmer">
+                15
+            </div>
+            <div class="text-white/80 mt-2">Day Streak</div>
+            <div class="text-green-400 text-sm mt-2">
+                <i class="fas fa-fire"></i> Best: 21 days
+            </div>
+            <div class="h-1 bg-gradient-to-r from-orange-600 to-yellow-400 mt-4 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        </div>
+
+        <!-- Average Score -->
+        <div class="glass-card p-6 text-center hover:bg-white/10 transition-all group">
+            <div class="flex justify-center mb-4">
+                <div class="p-3 rounded-full bg-gradient-to-r from-green-600/20 to-emerald-400/20">
+                    <i class="fas fa-chart-line text-2xl text-green-400"></i>
+                </div>
+            </div>
+            <div class="text-4xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent shimmer">
+                92%
+            </div>
+            <div class="text-white/80 mt-2">Average Score</div>
+            <div class="text-green-400 text-sm mt-2">
+                <i class="fas fa-trophy"></i> Top 5%
+            </div>
+            <div class="h-1 bg-gradient-to-r from-green-600 to-emerald-400 mt-4 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        </div>
     </div>
 
-    <!-- Interactive Progress Dashboard -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Enhanced Progress Chart -->
-        <div class="glass-card p-6 h-96 relative">
+    <!-- Recent Activity Feed -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+        <!-- Progress Chart -->
+        <div class="glass-card p-6 h-96">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-semibold">Learning Progress</h2>
                 <div class="flex gap-2">
-                    <button class="chart-filter active" data-range="week">Week</button>
-                    <button class="chart-filter" data-range="month">Month</button>
-                    <button class="chart-filter" data-range="year">Year</button>
+                    <button class="chart-filter active px-4 py-2 rounded-full text-sm" data-period="week">Week</button>
+                    <button class="chart-filter px-4 py-2 rounded-full text-sm" data-period="month">Month</button>
+                    <button class="chart-filter px-4 py-2 rounded-full text-sm" data-period="year">Year</button>
                 </div>
             </div>
-            <canvas id="progressChart" class="hover:cursor-crosshair"></canvas>
-            <div id="chartTooltip" class="hidden absolute bg-white/90 p-3 rounded-lg shadow-lg text-sm"></div>
+            <canvas id="progressChart"></canvas>
         </div>
 
-        <!-- New Activity Feed -->
+        <!-- Activity Feed -->
         <div class="glass-card p-6 h-96 overflow-y-auto">
             <h2 class="text-xl font-semibold mb-6">Recent Activity</h2>
             <div class="space-y-4">
-                {% for activity in activities %}
-                <div class="flex items-start p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-all">
-                    <div class="w-8 h-8 rounded-full bg-gradient-to-r from-violet-600 to-pink-400 mr-4"></div>
-                    <div>
-                        <p class="font-medium">{{ activity.title }}</p>
-                        <p class="text-sm text-white/60">{{ activity.timestamp }}</p>
+                <!-- Activity Items -->
+                <div class="flex items-start p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-all">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-r from-violet-600 to-pink-400 flex items-center justify-center">
+                        <i class="fas fa-book-open text-white"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="font-medium">Completed Chapter 5: Quantum Mechanics</p>
+                        <p class="text-sm text-white/60">2 hours ago</p>
                     </div>
                 </div>
-                {% endfor %}
+
+                <div class="flex items-start p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-all">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-cyan-400 flex items-center justify-center">
+                        <i class="fas fa-trophy text-white"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="font-medium">Achieved 100% on Physics Quiz</p>
+                        <p class="text-sm text-white/60">5 hours ago</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-all">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-r from-orange-600 to-yellow-400 flex items-center justify-center">
+                        <i class="fas fa-file-upload text-white"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="font-medium">Uploaded New Document: ML Basics</p>
+                        <p class="text-sm text-white/60">Yesterday</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -80,41 +153,153 @@
 </div>
 
 <script>
-    // Enhanced Chart Configuration
-    const chartConfig = {
-        type: 'line',
-        data: {
+    // Dummy data for different time periods
+    const chartData = {
+        week: {
             labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-            datasets: [{
-                label: 'Progress',
-                data: [65, 78, 82, 75, 90, 85, 88],
-                backgroundColor: 'rgba(138, 43, 226, 0.2)',
-                borderColor: 'rgba(138, 43, 226, 1)',
-                borderWidth: 2,
-                tension: 0.4,
-                pointRadius: 5,
-                pointHoverRadius: 8
-            }]
+            data: [4.5, 6, 3.5, 7, 5.5, 8, 6.5],
+            maxValue: 10
         },
-        options: {
-            responsive: true,
-            plugins: {
-                tooltip: {
-                    enabled: false,
-                    external: (context) => {
-                        // Custom tooltip implementation
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: { color: 'rgba(255,255,255,0.1)' }
-                },
-                x: { grid: { color: 'rgba(255,255,255,0.1)' } }
-            },
-            animation: { duration: 1000 }
+        month: {
+            labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+            data: [23, 28, 32, 37],
+            maxValue: 40
+        },
+        year: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            data: [85, 92, 89, 94, 96, 91, 95, 93, 97, 94, 96, 98],
+            maxValue: 100
         }
     };
+
+    // Initialize chart
+    let progressChart;
+
+    function updateChart(period) {
+        const data = chartData[period];
+        
+        if (progressChart) {
+            progressChart.destroy();
+        }
+
+        const ctx = document.getElementById('progressChart').getContext('2d');
+        progressChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: 'Learning Progress',
+                    data: data.data,
+                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                    borderColor: 'rgba(139, 92, 246, 1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 4,
+                    pointBackgroundColor: 'rgba(139, 92, 246, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverRadius: 6,
+                    pointHoverBackgroundColor: 'rgba(139, 92, 246, 1)',
+                    pointHoverBorderColor: '#fff',
+                    pointHoverBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(17, 24, 39, 0.9)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        padding: 12,
+                        borderColor: 'rgba(139, 92, 246, 0.3)',
+                        borderWidth: 1,
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                const value = context.parsed.y;
+                                const period = document.querySelector('.chart-filter.active').dataset.period;
+                                switch(period) {
+                                    case 'week':
+                                        return `${value} hours studied`;
+                                    case 'month':
+                                        return `${value} hours total`;
+                                    case 'year':
+                                        return `${value}% completion`;
+                                }
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: data.maxValue,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            callback: function(value) {
+                                const period = document.querySelector('.chart-filter.active').dataset.period;
+                                return period === 'year' ? value + '%' : value;
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)'
+                        }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                animation: {
+                    duration: 1000
+                }
+            }
+        });
+    }
+
+    // Initialize with weekly data
+    updateChart('week');
+
+    // Add click handlers for period filters
+    document.querySelectorAll('.chart-filter').forEach(button => {
+        button.addEventListener('click', function() {
+            // Update active state
+            document.querySelectorAll('.chart-filter').forEach(btn => {
+                btn.classList.remove('active', 'bg-gradient-to-r', 'from-violet-600', 'to-indigo-600', 'text-white');
+            });
+            this.classList.add('active', 'bg-gradient-to-r', 'from-violet-600', 'to-indigo-600', 'text-white');
+            
+            // Update chart
+            updateChart(this.dataset.period);
+        });
+    });
 </script>
+
+<style>
+    .chart-filter {
+        transition: all 0.3s ease;
+    }
+    
+    .chart-filter:not(.active) {
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .chart-filter:not(.active):hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+</style>
 {% endblock %}

@@ -209,3 +209,34 @@ html, body {
     overflow-x: auto;
     margin: 1rem 0;
 }
+
+
+@keyframes slide-up {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes pop-in {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.animate-slide-up {
+    animation: slide-up 0.4s ease-out;
+}
+
+.animate-pop-in {
+    animation: pop-in 0.2s ease-out;
+}
+
+.scroll-smooth {
+    scroll-behavior: smooth;
+}
+
+.prose-invert pre {
+    @apply bg-black/30 p-4 rounded-lg overflow-x-auto;
+}
+
+.prose-invert code {
+    @apply px-2 py-1 bg-black/30 rounded text-sm;
+}

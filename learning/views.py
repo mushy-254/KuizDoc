@@ -135,10 +135,16 @@ def ask_question(request):
         text_content = extract_text(document)
         ai_response = ask_openai(question, text_content)
         
+        # Clean the AI response for speech synthesis
+        speech_text = ' '.join(ai_response.split('\n')).replace('#', '').replace('*', '')
+        
         # Add logging
         print("AI Response:", ai_response)
         
-        return JsonResponse({'ai_response': ai_response})
+        return JsonResponse({
+            'ai_response': ai_response,
+            'speech_text': speech_text  # Add clean text for speech
+        })
 
     except ValueError as e:
         print("ValueError:", str(e))
