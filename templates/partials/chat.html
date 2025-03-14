@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="bg-gradient-to-br from-[#121533] via-[#1a2347] to-[#0c0e1a] min-h-screen text-gray-100 p-8">
+    <!-- Chat Header -->
+    <header class="mb-8">
+        <h1 class="text-3xl font-bold flex items-center">
+            <i class="fas fa-comments text-indigo-400 mr-3"></i>
+            Document Chat Assistant
+        </h1>
+        <p class="text-gray-400 mt-2">Ask questions, get summaries, or discuss your documents with AI.</p>
+    </header>
+
+    <!-- Chat Container -->
+    <div class="flex flex-col h-[calc(100vh-200px)] bg-gray-800/50 rounded-xl overflow-hidden">
+        <!-- Chat History -->
+        <div id="chatHistory" class="flex-1 overflow-y-auto p-6 space-y-4">
+            <!-- Welcome Message -->
+            <div class="chat-message bot-message">
+                <div class="message-avatar">
+                    <i class="fas fa-robot text-xl text-indigo-400"></i>
+                </div>
+                <div class="message-content">
+                    <p class="message-sender text-sm text-indigo-400 mb-1">AI Assistant</p>
+                    <p class="text-gray-100">Hello! I'm here to help you understand your documents better. You can ask me questions, request summaries, or get clarification on specific topics.</p>
+                </div>
+            </div>
+
+            <!-- Example User Message -->
+            <div class="chat-message user-message">
+                <div class="message-avatar">
+                    <i class="fas fa-user text-xl text-purple-400"></i>
+                </div>
+                <div class="message-content">
+                    <p class="message-sender text-sm text-purple-400 mb-1">You</p>
+                    <p class="text-gray-100">Can you summarize this document for me?</p>
+                </div>
+            </div>
+
+            <!-- Example AI Response -->
+            <div class="chat-message bot-message">
+                <div class="message-avatar">
+                    <i class="fas fa-robot text-xl text-indigo-400"></i>
+                </div>
+                <div class="message-content">
+                    <p class="message-sender text-sm text-indigo-400 mb-1">AI Assistant</p>
+                    <p class="text-gray-100">Sure! Here's a summary of the document: [Summary content goes here].</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Input Area -->
+        <div class="border-t border-gray-700 p-4 bg-gray-800/30">
+            <div class="flex items-center space-x-4">
+                <!-- Voice Input Button -->
+                <button id="voiceInputBtn" class="btn-icon" title="Voice Input">
+                    <i class="fas fa-microphone"></i>
+                </button>
+
+                <!-- Text Input -->
+                <div class="flex-1 relative">
+                    <input 
+                        type="text" 
+                        id="chatInput" 
+                        class="chat-input w-full bg-gray-700 rounded-lg px-4 py-3 pr-12 focus:ring-2 focus:ring-indigo-500" 
+                        placeholder="Ask about your document..."
+                    >
+                    <button id="sendMessageBtn" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-indigo-400">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+
+                <!-- Attach Document Button -->
+                <button id="attachDocumentBtn" class="btn-icon" title="Attach Document">
+                    <i class="fas fa-paperclip"></i>
+                </button>
+            </div>
+
+            <!-- Quick Action Buttons -->
+            <div class="flex flex-wrap gap-2 mt-4">
+                <button class="suggestion-chip" data-prompt="Summarize the document">
+                    <i class="fas fa-file-alt mr-2"></i> Summarize
+                </button>
+                <button class="suggestion-chip" data-prompt="Explain key concepts">
+                    <i class="fas fa-lightbulb mr-2"></i> Explain Concepts
+                </button>
+                <button class="suggestion-chip" data-prompt="Generate study questions">
+                    <i class="fas fa-question-circle mr-2"></i> Generate Questions
+                </button>
+                <button class="suggestion-chip" data-prompt="Provide key insights">
+                    <i class="fas fa-chart-line mr-2"></i> Key Insights
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Voice Input Modal -->
+<div id="voiceModal" class="fixed inset-0 bg-black/50 hidden">
+    <div class="flex items-center justify-center min-h-screen">
+        <div class="bg-gray-800 rounded-xl p-6 w-96 text-center">
+            <h3 class="text-xl font-bold mb-4">Voice Input</h3>
+            <div id="voiceStatus" class="text-gray-400 mb-4">Click to start speaking...</div>
+            <button id="startVoiceBtn" class="btn-primary w-full">
+                <i class="fas fa-microphone mr-2"></i> Start Recording
+            </button>
+            <button id="stopVoiceBtn" class="btn-secondary w-full mt-2 hidden">
+                <i class="fas fa-stop-circle mr-2"></i> Stop Recording
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Chat Functionality -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const chatInput = document.getElementById('chatInput');
+    const sendMessageBtn = document.getElementById('sendMessageBtn');
+    const chatHistory = document.getElementById('chatHistory');
+    const voiceInputBtn = document.getElementById('voiceInputBtn');
+    const voiceModal = document.getElementById('voiceModal');
+    const startVoiceBtn = document.getElementById('startVoiceBtn');
+    const stopVoiceBtn = document.getElementById('stopVoiceBtn');
+    const voiceStatus = document.getElementById('voiceStatus');
+
+    let recognition;
+    let isRecording = false;
+
+    // Initialize Web Speech API
+    if ('webkitSpeechRecognition' in window) {
+        recognition = new webkitSpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+
+        recognition.onstart = () => {
+            voiceStatus.textContent = "Listening...";
+            isRecording = true;
+            stopVoiceBtn.classList.remove('hidden');
+        };
+
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            chatInput.value = transcript;
+            recognition.stop();
+        };
+
+        recognition.onend = () => {
+            voiceStatus.textContent = "Click to start speaking...";
+            isRecording = false;
+            stopVoiceBtn.classList.add('hidden');
+            voiceModal.classList.add('hidden');
+        };
+
+        recognition.onerror = (event) => {
+            voiceStatus.textContent = "Error: " + event.error;
+            isRecording = false;
+            stopVoiceBtn.classList.add('hidden');
+        };
+    } else {
+        voiceInputBtn.disabled = true;
+        voiceInputBtn.title = "Voice input not supported in your browser";
+    }
+
+    // Voice Input Button
+    voiceInputBtn.addEventListener('click', () => {
+        voiceModal.classList.remove('hidden');
+    });
+
+    // Start/Stop Voice Recording
+    startVoiceBtn.addEventListener('click', () => {
+        if (!isRecording) {
+            recognition.start();
+        }
+    });
+
+    stopVoiceBtn.addEventListener('click', () => {
+        if (isRecording) {
+            recognition.stop();
+        }
+    });
+
+    // Send Message
+    sendMessageBtn.addEventListener('click', () => {
+        const message = chatInput.value.trim();
+        if (message) {
+            addMessageToChat(message, true); // Add user message
+            chatInput.value = '';
+
+            // Simulate AI response (replace with actual API call)
+            setTimeout(() => {
+                addMessageToChat("This is a simulated AI response.", false);
+            }, 1000);
+        }
+    });
+
+    // Quick Action Buttons
+    document.querySelectorAll('.suggestion-chip').forEach(button => {
+        button.addEventListener('click', () => {
+            const prompt = button.getAttribute('data-prompt');
+            chatInput.value = prompt;
+        });
+    });
+
+    // Add Message to Chat
+    function addMessageToChat(text, isUser) {
+        const messageHTML = `
+            <div class="chat-message ${isUser ? 'user-message' : 'bot-message'}">
+                <div class="message-avatar">
+                    <i class="fas ${isUser ? 'fa-user text-purple-400' : 'fa-robot text-indigo-400'} text-xl"></i>
+                </div>
+                <div class="message-content">
+                    <p class="message-sender text-sm ${isUser ? 'text-purple-400' : 'text-indigo-400'} mb-1">
+                        ${isUser ? 'You' : 'AI Assistant'}
+                    </p>
+                    <p class="text-gray-100">${text}</p>
+                </div>
+            </div>`;
+        chatHistory.insertAdjacentHTML('beforeend', messageHTML);
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+    }
+});
+</script>
+
+<!-- Styles for Chat Section -->
+<style>
+.chat-message {
+    @apply flex items-start space-x-4;
+}
+
+.message-avatar {
+    @apply w-10 h-10 flex items-center justify-center rounded-full bg-gray-700;
+}
+
+.message-content {
+    @apply flex-1 bg-gray-700/50 rounded-xl p-4;
+}
+
+.user-message .message-content {
+    @apply bg-purple-500/10;
+}
+
+.bot-message .message-content {
+    @apply bg-indigo-500/10;
+}
+
+.chat-input {
+    @apply w-full bg-gray-700 rounded-lg px-4 py-3 pr-12 focus:ring-2 focus:ring-indigo-500;
+}
+
+.suggestion-chip {
+    @apply px-3 py-2 bg-gray-700/50 rounded-lg text-sm hover:bg-gray-700 transition-colors;
+}
+
+.btn-icon {
+    @apply p-2 hover:bg-gray-700/50 rounded-lg text-gray-400 hover:text-indigo-400 transition-colors;
+}
+</style>
+{% endblock %}

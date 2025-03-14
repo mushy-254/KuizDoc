@@ -1,0 +1,49 @@
+<section class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+    <!-- Learning Progress Card -->
+    <article class="dashboard-card hover-effect-purple">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="dashboard-card-title">Learning Progress</h2>
+            <div class="flex space-x-2">
+                <button class="time-filter-btn">Week</button>
+                <button class="time-filter-btn">Month</button>
+            </div>
+        </div>
+        <canvas id="learningProgressChart" class="w-full h-64"></canvas>
+    </article>
+
+    <!-- Document Insights Card -->
+    <article class="dashboard-card hover-effect-cyan">
+        <h2 class="dashboard-card-title mb-6">Document Insights</h2>
+        <div class="space-y-4">
+            <div class="metric-card">
+                <div>
+                    <h3 class="metric-title">Total Documents</h3>
+                    <p class="metric-value">{{ total_documents }}</p>
+                </div>
+                <i class="fas fa-file-alt metric-icon"></i>
+            </div>
+            <div class="metric-card">
+                <div>
+                    <h3 class="metric-title">Analysis Completed</h3>
+                    <p class="metric-value">{{ analyzed_documents }}</p>
+                </div>
+                <i class="fas fa-chart-pie metric-icon"></i>
+            </div>
+        </div>
+    </article>
+
+    <!-- Achievements Card -->
+    <article class="dashboard-card hover-effect-pink">
+        <h2 class="dashboard-card-title mb-6">Achievements</h2>
+        <div class="grid grid-cols-3 gap-4">
+            {% for achievement in achievements %}
+            <div class="achievement-item">
+                <div class="achievement-icon">
+                    <i class="{{ achievement.icon }} text-2xl text-white"></i>
+                </div>
+                <p class="achievement-label">{{ achievement.name }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </article>
+</section>

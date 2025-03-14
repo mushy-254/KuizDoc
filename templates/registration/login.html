@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-md mx-auto my-12 bg-gray-800 p-8 rounded-xl">
+    <h2 class="text-3xl font-bold mb-8 text-center">
+        <i class="fas fa-sign-in-alt mr-2 text-indigo-400"></i>
+        Welcome Back
+    </h2>
+    
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+        
+        <div>
+            <label class="block text-sm font-medium mb-2">Username</label>
+            <input type="text" name="username" required
+                   class="w-full bg-gray-700 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500">
+        </div>
+        
+        <div>
+            <label class="block text-sm font-medium mb-2">Password</label>
+            <input type="password" name="password" required
+                   class="w-full bg-gray-700 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <button type="submit" class="btn-primary w-full">
+            Login
+        </button>
+        
+        <div class="text-center text-sm mt-4">
+            <a href="{% url 'register' %}" class="text-indigo-400 hover:text-indigo-300">
+                Create New Account
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

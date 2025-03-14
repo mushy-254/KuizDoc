@@ -1,0 +1,236 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="min-h-screen bg-gray-100 py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Main Dashboard Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Learning Analytics Dashboard</h1>
+            <p class="mt-2 text-gray-600">Track your learning progress and document analysis</p>
+        </div>
+
+        <!-- Quick Stats Section -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            {% for stat in quick_stats %}
+            <div class="bg-white rounded-xl shadow-lg p-6 transform transition-all hover:scale-105">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-sm text-gray-500">{{ stat.title }}</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ stat.value }}</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full flex items-center justify-center {{ stat.bg_color }}">
+                        <i class="{{ stat.icon }} text-white text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="flex items-center">
+                        <span class="{{ stat.trend_color }} text-sm font-semibold">
+                            {{ stat.trend }}
+                        </span>
+                        <span class="text-gray-500 text-sm ml-2">vs last week</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Document Analytics and Topic Mastery Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Document Analytics Card -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-gray-900">Document Analytics</h2>
+                    <select class="bg-gray-100 rounded-md px-3 py-1 text-sm" id="documentPeriodFilter">
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                        <option value="year">This Year</option>
+                    </select>
+                </div>
+
+                <!-- Document Type Distribution -->
+                <div class="mb-6">
+                    <canvas id="documentTypeChart" height="200"></canvas>
+                </div>
+
+                <!-- Recent Documents List -->
+                <div class="mt-6">
+                    <h3 class="text-lg font-semibold mb-4">Recent Documents</h3>
+                    <div class="space-y-4">
+                        {% for doc in recent_documents %}
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="{{ doc.type_color }} w-10 h-10 rounded-lg flex items-center justify-center">
+                                    <i class="{{ doc.icon }} text-white"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="font-medium text-gray-900">{{ doc.name }}</p>
+                                    <p class="text-sm text-gray-500">{{ doc.date }}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-semibold">{{ doc.pages }} pages</p>
+                                <div class="w-32 bg-gray-200 rounded-full h-2">
+                                    <div class="bg-blue-600 rounded-full h-2" style="width: {{ doc.progress }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Topic Mastery Card -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-6">Topic Mastery</h2>
+                <div class="space-y-6">
+                    {% for topic in topics %}
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <div>
+                                <h3 class="font-medium text-gray-900">{{ topic.name }}</h3>
+                                <p class="text-sm text-gray-500">Last studied: {{ topic.last_studied }}</p>
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-sm {{ topic.strength_color }}">
+                                {{ topic.strength }}
+                            </span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="{{ topic.progress_color }} rounded-full h-2 transition-all duration-500"
+                                 style="width: {{ topic.progress }}%"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Weekly Progress Chart -->
+                <div class="mt-8">
+                    <h3 class="text-lg font-semibold mb-4">Weekly Progress</h3>
+                    <canvas id="weeklyProgressChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Achievements Section -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-gray-900">Achievements & Streaks</h2>
+                <span class="px-4 py-2 bg-purple-100 text-purple-800 rounded-full font-medium">
+                    {{ total_achievements }} Total Achievements
+                </span>
+            </div>
+
+            <!-- Achievement Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                {% for achievement in recent_achievements %}
+                <div class="bg-gradient-to-br {{ achievement.gradient }} p-6 rounded-xl text-white">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
+                            <i class="{{ achievement.icon }} text-2xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="font-bold">{{ achievement.name }}</h3>
+                            <p class="text-sm opacity-80">{{ achievement.date }}</p>
+                        </div>
+                    </div>
+                    <p class="text-sm opacity-90">{{ achievement.description }}</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Streak Information -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl p-6 text-white">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-xl font-bold">Current Streak</h3>
+                            <p class="text-4xl font-bold mt-2">{{ current_streak }} Days</p>
+                        </div>
+                        <div class="w-16 h-16 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
+                            <i class="fas fa-fire text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 grid grid-cols-7 gap-2">
+                        {% for day in streak_days %}
+                        <div class="h-2 rounded-full {% if day.completed %}bg-white{% else %}bg-white bg-opacity-20{% endif %}">
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 rounded-xl p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Streak Statistics</h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Longest Streak</span>
+                            <span class="font-bold text-gray-900">{{ longest_streak }} Days</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Total Study Days</span>
+                            <span class="font-bold text-gray-900">{{ total_study_days }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Average Daily Progress</span>
+                            <span class="font-bold text-gray-900">{{ avg_daily_progress }}%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Initialization -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Document Type Distribution Chart
+    const docTypeCtx = document.getElementById('documentTypeChart').getContext('2d');
+    new Chart(docTypeCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ doc_type_labels|safe }},
+            datasets: [{
+                data: {{ doc_type_data|safe }},
+                backgroundColor: [
+                    '#4C1D95',
+                    '#1D4ED8',
+                    '#047857',
+                    '#B45309'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Weekly Progress Chart
+    const weeklyCtx = document.getElementById('weeklyProgressChart').getContext('2d');
+    new Chart(weeklyCtx, {
+        type: 'line',
+        data: {
+            labels: {{ weekly_progress_labels|safe }},
+            datasets: [{
+                label: 'Progress',
+                data: {{ weekly_progress_data|safe }},
+                borderColor: '#4C1D95',
+                tension: 0.4,
+                fill: true,
+                backgroundColor: 'rgba(76, 29, 149, 0.1)'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

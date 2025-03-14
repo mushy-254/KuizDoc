@@ -1,0 +1,474 @@
+{% extends 'base.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                    }
+                }
+            }
+        }
+        
+        // Check for dark mode preference
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+    </script>
+</head>
+<body class="bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 min-h-screen p-4 md:p-6">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-2xl font-bold mb-6">Document Manager</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Left Column: Upload & Stats -->
+            <div class="md:col-span-1 space-y-6">
+                <!-- Upload Card -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-5 border border-gray-100 dark:border-gray-700">
+                    <h2 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fas fa-cloud-upload-alt mr-2 text-primary"></i>
+                        Upload Document
+                    </h2>
+                    
+                    <div id="dropZone" class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary dark:hover:border-primary transition-colors">
+                        <input type="file" id="documentUpload" class="hidden" accept=".pdf,.docx,.txt" multiple>
+                        <label for="documentUpload" class="cursor-pointer py-6 px-4 flex flex-col items-center">
+                            <i class="fas fa-file-arrow-up text-3xl text-primary mb-3"></i>
+                            <p class="font-medium mb-1">Drag files here or click to browse</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 text-center">
+                                PDF, DOCX, TXT (Max 25MB)
+                            </p>
+                            
+                            <div class="mt-4 w-full">
+                                <div class="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                    <div id="uploadProgress" class="h-full bg-primary transition-all duration-300" style="width: 0%"></div>
+                                </div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center" id="uploadStatus">Ready to upload</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Stats Card -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-5 border border-gray-100 dark:border-gray-700">
+                    <h2 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fas fa-chart-simple mr-2 text-primary"></i>
+                        Quick Stats
+                    </h2>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Documents</p>
+                            <p class="text-xl font-semibold mt-1">12</p>
+                        </div>
+                        <div class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Storage Used</p>
+                            <p class="text-xl font-semibold mt-1">45.2 MB</p>
+                        </div>
+                        <div class="col-span-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <div class="flex justify-between mb-1.5">
+                                <p class="text-sm text-gray-500 dark:text-gray-400">File Types</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">12 files</p>
+                            </div>
+                            <div class="flex h-2 rounded-full overflow-hidden mb-1">
+                                <div class="bg-primary" style="width: 60%"></div>
+                                <div class="bg-green-500" style="width: 30%"></div>
+                                <div class="bg-amber-500" style="width: 10%"></div>
+                            </div>
+                            <div class="flex text-xs justify-between">
+                                <span class="flex items-center"><span class="w-2 h-2 bg-primary rounded-full mr-1"></span> PDF (7)</span>
+                                <span class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-1"></span> DOCX (4)</span>
+                                <span class="flex items-center"><span class="w-2 h-2 bg-amber-500 rounded-full mr-1"></span> TXT (1)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column: Document Library -->
+            <div class="md:col-span-2">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-5 border border-gray-100 dark:border-gray-700">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-5 gap-3">
+                        <h2 class="text-lg font-semibold flex items-center">
+                            <i class="fas fa-folder mr-2 text-primary"></i>
+                            Your Documents
+                        </h2>
+                        
+                        <div class="flex space-x-1 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg text-sm">
+                            <button class="sort-btn px-3 py-1.5 rounded-md font-medium bg-white dark:bg-gray-600 shadow-sm" data-sort="date">
+                                <i class="fas fa-calendar-day mr-1.5"></i>Recent
+                            </button>
+                            <button class="sort-btn px-3 py-1.5 rounded-md font-medium hover:bg-white hover:dark:bg-gray-600 transition-colors" data-sort="name">
+                                <i class="fas fa-font mr-1.5"></i>Name
+                            </button>
+                            <button class="sort-btn px-3 py-1.5 rounded-md font-medium hover:bg-white hover:dark:bg-gray-600 transition-colors" data-sort="size">
+                                <i class="fas fa-weight mr-1.5"></i>Size
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            placeholder="Search documents..." 
+                            class="w-full p-2.5 pl-10 mb-4 bg-gray-100 dark:bg-gray-700 border-none rounded-lg text-base focus:ring-2 focus:ring-primary"
+                        >
+                        <i class="fas fa-search absolute left-3.5 top-3.5 text-gray-400"></i>
+                    </div>
+                    
+                    <div id="documentList" class="space-y-2 max-h-[calc(100vh-300px)] overflow-y-auto pr-2">
+                        <!-- Document Items -->
+                        <div class="document-item group border border-gray-100 dark:border-gray-700 hover:border-primary dark:hover:border-primary rounded-lg transition-colors">
+                            <div class="p-3 flex items-center">
+                                <div class="mr-3 text-red-500 dark:text-red-400">
+                                    <i class="fas fa-file-pdf text-lg"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-medium truncate">Machine_Learning_Notes.pdf</p>
+                                    <div class="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                                        <span>4.2 MB</span>
+                                        <span class="mx-1.5">•</span>
+                                        <span>Aug 15, 2023</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center ml-2">
+                                    <button class="info-toggle p-2 text-gray-400 hover:text-primary rounded-full" aria-label="Toggle details">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </button>
+                                    <div class="relative">
+                                        <button class="p-2 text-gray-400 hover:text-primary rounded-full" aria-label="More options">
+                                            <i class="fas fa-ellipsis-vertical"></i>
+                                        </button>
+                                        <div class="action-menu hidden absolute right-0 mt-1 w-40 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-100 dark:border-gray-700 z-10">
+                                            <ul class="py-1">
+                                                <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm"><i class="fas fa-eye mr-2"></i> View</a></li>
+                                                <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm"><i class="fas fa-download mr-2"></i> Download</a></li>
+                                                <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm"><i class="fas fa-pen mr-2"></i> Rename</a></li>
+                                                <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm text-red-500"><i class="fas fa-trash mr-2"></i> Delete</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="document-details hidden px-3 pb-3 pt-1 bg-gray-50 dark:bg-gray-700/30 text-sm rounded-b-lg">
+                                <div class="grid grid-cols-3 gap-4">
+                                    <div>
+                                        <p class="text-gray-500 dark:text-gray-400">Pages</p>
+                                        <p class="font-medium">24</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-500 dark:text-gray-400">Created</p>
+                                        <p class="font-medium">Aug 15, 2023</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-500 dark:text-gray-400">Last opened</p>
+                                        <p class="font-medium">2h ago</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="document-item group border border-gray-100 dark:border-gray-700 hover:border-primary dark:hover:border-primary rounded-lg transition-colors">
+                            <div class="p-3 flex items-center">
+                                <div class="mr-3 text-blue-500 dark:text-blue-400">
+                                    <i class="fas fa-file-word text-lg"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-medium truncate">Project_Proposal_Draft.docx</p>
+                                    <div class="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                                        <span>2.8 MB</span>
+                                        <span class="mx-1.5">•</span>
+                                        <span>Aug 10, 2023</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center ml-2">
+                                    <button class="info-toggle p-2 text-gray-400 hover:text-primary rounded-full" aria-label="Toggle details">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </button>
+                                    <div class="relative">
+                                        <button class="p-2 text-gray-400 hover:text-primary rounded-full" aria-label="More options">
+                                            <i class="fas fa-ellipsis-vertical"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="document-details hidden px-3 pb-3 pt-1 bg-gray-50 dark:bg-gray-700/30 text-sm rounded-b-lg">
+                                <div class="grid grid-cols-3 gap-4">
+                                    <div>
+                                        <p class="text-gray-500 dark:text-gray-400">Pages</p>
+                                        <p class="font-medium">12</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-500 dark:text-gray-400">Created</p>
+                                        <p class="font-medium">Aug 10, 2023</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-500 dark:text-gray-400">Last opened</p>
+                                        <p class="font-medium">1d ago</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="document-item group border border-gray-100 dark:border-gray-700 hover:border-primary dark:hover:border-primary rounded-lg transition-colors">
+                            <div class="p-3 flex items-center">
+                                <div class="mr-3 text-gray-500 dark:text-gray-400">
+                                    <i class="fas fa-file-lines text-lg"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-medium truncate">Meeting_Notes.txt</p>
+                                    <div class="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                                        <span>0.1 MB</span>
+                                        <span class="mx-1.5">•</span>
+                                        <span>Jul 28, 2023</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center ml-2">
+                                    <button class="info-toggle p-2 text-gray-400 hover:text-primary rounded-full" aria-label="Toggle details">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </button>
+                                    <div class="relative">
+                                        <button class="p-2 text-gray-400 hover:text-primary rounded-full" aria-label="More options">
+                                            <i class="fas fa-ellipsis-vertical"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="document-details hidden px-3 pb-3 pt-1 bg-gray-50 dark:bg-gray-700/30 text-sm rounded-b-lg">
+                                <div class="grid grid-cols-3 gap-4">
+                                    <div>
+                                        <p class="text-gray-500 dark:text-gray-400">Words</p>
+                                        <p class="font-medium">342</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-500 dark:text-gray-400">Created</p>
+                                        <p class="font-medium">Jul 28, 2023</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-500 dark:text-gray-400">Last opened</p>
+                                        <p class="font-medium">5d ago</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Add a few more document items for a realistic list -->
+                        <div class="document-item group border border-gray-100 dark:border-gray-700 hover:border-primary dark:hover:border-primary rounded-lg transition-colors">
+                            <div class="p-3 flex items-center">
+                                <div class="mr-3 text-red-500 dark:text-red-400">
+                                    <i class="fas fa-file-pdf text-lg"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-medium truncate">Financial_Report_Q2.pdf</p>
+                                    <div class="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                                        <span>5.7 MB</span>
+                                        <span class="mx-1.5">•</span>
+                                        <span>Jul 15, 2023</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center ml-2">
+                                    <button class="info-toggle p-2 text-gray-400 hover:text-primary rounded-full" aria-label="Toggle details">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </button>
+                                    <div class="relative">
+                                        <button class="p-2 text-gray-400 hover:text-primary rounded-full" aria-label="More options">
+                                            <i class="fas fa-ellipsis-vertical"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="document-details hidden px-3 pb-3 pt-1 bg-gray-50 dark:bg-gray-700/30 text-sm rounded-b-lg">
+                                <div class="grid grid-cols-3 gap-4">
+                                    <div>
+                                        <p class="text-gray-500 dark:text-gray-400">Pages</p>
+                                        <p class="font-medium">42</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-500 dark:text-gray-400">Created</p>
+                                        <p class="font-medium">Jul 15, 2023</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-500 dark:text-gray-400">Last opened</p>
+                                        <p class="font-medium">1w ago</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Upload functionality
+        document.getElementById('documentUpload').addEventListener('change', function(e) {
+            if (this.files.length === 0) return;
+            
+            const progressBar = document.getElementById('uploadProgress');
+            const statusText = document.getElementById('uploadStatus');
+            
+            statusText.textContent = 'Starting upload...';
+            progressBar.style.width = '0%';
+            
+            let progress = 0;
+            const fakeUpload = setInterval(() => {
+                progress += Math.random() * 10;
+                if(progress >= 100) {
+                    clearInterval(fakeUpload);
+                    progressBar.style.width = '100%';
+                    statusText.textContent = 'Processing document...';
+                    
+                    setTimeout(() => {
+                        statusText.textContent = 'Upload complete!';
+                        
+                        // Reset after 2 seconds
+                        setTimeout(() => {
+                            progressBar.style.width = '0%';
+                            statusText.textContent = 'Ready to upload';
+                        }, 2000);
+                    }, 1500);
+                    return;
+                }
+                progressBar.style.width = `${progress}%`;
+                statusText.textContent = `Uploading... ${Math.floor(progress)}%`;
+            }, 200);
+        });
+        
+        // File drag and drop
+        const dropZone = document.getElementById('dropZone');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight() {
+            dropZone.classList.add('border-primary');
+        }
+        
+        function unhighlight() {
+            dropZone.classList.remove('border-primary');
+        }
+        
+        dropZone.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            document.getElementById('documentUpload').files = files;
+            
+            // Trigger the change event manually
+            const event = new Event('change');
+            document.getElementById('documentUpload').dispatchEvent(event);
+        }
+        
+        // Document item interactions
+        document.querySelectorAll('.info-toggle').forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                const details = this.closest('.document-item').querySelector('.document-details');
+                const icon = this.querySelector('i');
+                
+                if (details.classList.contains('hidden')) {
+                    details.classList.remove('hidden');
+                    icon.classList.remove('fa-chevron-down');
+                    icon.classList.add('fa-chevron-up');
+                    details.style.maxHeight = details.scrollHeight + 'px';
+                } else {
+                    details.classList.add('hidden');
+                    icon.classList.remove('fa-chevron-up');
+                    icon.classList.add('fa-chevron-down');
+                    details.style.maxHeight = null;
+                }
+            });
+        });
+        
+        // Action menu toggles
+        document.querySelectorAll('.document-item .fa-ellipsis-vertical').forEach(btn => {
+            btn.parentElement.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const menu = this.querySelector('.action-menu');
+                
+                // Close all other menus first
+                document.querySelectorAll('.action-menu').forEach(m => {
+                    if (m !== menu) m.classList.add('hidden');
+                });
+                
+                // Toggle this menu
+                menu?.classList.toggle('hidden');
+            });
+        });
+        
+        // Close menus when clicking elsewhere
+        document.addEventListener('click', function() {
+            document.querySelectorAll('.action-menu').forEach(menu => {
+                menu.classList.add('hidden');
+            });
+        });
+        
+        // Sorting functionality
+        document.querySelectorAll('.sort-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Remove active class from all buttons
+                document.querySelectorAll('.sort-btn').forEach(b => {
+                    b.classList.remove('bg-white', 'dark:bg-gray-600', 'shadow-sm');
+                });
+                
+                // Add active class to clicked button
+                this.classList.add('bg-white', 'dark:bg-gray-600', 'shadow-sm');
+                
+                // Here you would implement the actual sorting logic
+                console.log(`Sorting by: ${this.dataset.sort}`);
+            });
+        });
+        
+        // Search functionality
+        const searchInput = document.querySelector('input[type="text"]');
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const documentItems = document.querySelectorAll('.document-item');
+            
+            documentItems.forEach(item => {
+                const documentName = item.querySelector('.flex-1 p').textContent.toLowerCase();
+                if (documentName.includes(searchTerm)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
+{% endblock %}
+

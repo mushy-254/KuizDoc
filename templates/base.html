@@ -1,203 +1,470 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}KuizDoc{% endblock %}</title>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-    <!-- <style>
-        .glass-card {
-            background: rgba(255, 255, 255, 0.25);
-            backdrop-filter: blur(10px);
-            border-radius: 1rem;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+    <title>StudyAI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        secondary: '#8D8DFF',
+                        dark: {
+                            900: '#121533',
+                            800: '#1a2347',
+                            700: '#273060'
+                        }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'fade-in': 'fadeIn 0.8s ease-out forwards',
+                        'slide-in': 'slideIn 0.5s ease-out forwards',
+                        'scale-in': 'scaleIn 0.5s ease-out forwards',
+                        'gradient': 'gradient 15s ease infinite',
+                        'typing': 'typing 3.5s steps(40, end)'
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' }
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' }
+                        },
+                        slideIn: {
+                            '0%': { transform: 'translateX(-20px)', opacity: '0' },
+                            '100%': { transform: 'translateX(0)', opacity: '1' }
+                        },
+                        scaleIn: {
+                            '0%': { transform: 'scale(0.9)', opacity: '0' },
+                            '100%': { transform: 'scale(1)', opacity: '1' }
+                        },
+                        gradient: {
+                            '0%': { backgroundPosition: '0% 50%' },
+                            '50%': { backgroundPosition: '100% 50%' },
+                            '100%': { backgroundPosition: '0% 50%' }
+                        },
+                        typing: {
+                            'from': { width: '0' },
+                            'to': { width: '100%' }
+                        }
+                    }
+                }
+            }
         }
-    </style> -->
-    <!-- Add Font Awesome CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-    
-    <!-- Optional: Add syntax highlighting -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/github.css">
+        
+        // Check for dark mode preference
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+    </script>
+    <!-- Animate.css for additional animations -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-rose-400 via-purple-500 to-cyan-500 text-gray-800">
-    <!-- Navbar -->
-    <nav class="sticky top-0 bg-white/95 backdrop-blur-lg shadow-lg z-50 px-8 py-4">
-        <div class="flex justify-between items-center max-w-7xl mx-auto">
-            <div class="flex items-center gap-8">
-                <h1 class="text-2xl font-bold bg-gradient-to-r from-violet-600 to-pink-400 bg-clip-text text-transparent">
-                    ✨ KuizDoc
-                </h1>
-                <div class="flex gap-4">
-                    <a href="?section=dashboard" class="px-6 py-3 rounded-xl transition-all {% if active_section == 'dashboard' %}bg-violet-600 text-white hover:scale-105{% else %}hover:bg-violet-100 hover:text-violet-600{% endif %}">
-                        Dashboard
+<body class="bg-gray-50 dark:bg-dark-900 text-gray-800 dark:text-gray-100 transition-colors duration-300">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Side Navigation -->
+        <aside id="sidebar" class="sidebar-container fixed md:static inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out md:translate-x-0">
+            <div class="flex flex-col h-full bg-white dark:bg-dark-800 shadow-lg overflow-y-auto">
+                <!-- Logo Section -->
+                <div class="p-4 border-b dark:border-gray-700">
+                    <div class="flex items-center space-x-3">
+                        <div class="logo-animation w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-brain text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600 animate-pulse-slow">StudyAI</h1>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Smart Learning Assistant</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Navigation Links -->
+                <nav class="flex-1 px-2 py-4 space-y-1">
+                    <div class="px-3 mb-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Main
+                    </div>
+                    
+                    <a href="{% url 'dashboard' %}" class="nav-link group flex items-center px-3 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-700 transition-all">
+                        <div class="icon-container mr-3 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 p-2 rounded-lg transition-all duration-300 group-hover:scale-110">
+                            <i class="fas fa-home"></i>
+                        </div>
+                        <span>Dashboard</span>
                     </a>
-                    <a href="?section=documents" class="px-6 py-3 rounded-xl transition-all {% if active_section == 'documents' %}bg-violet-600 text-white hover:scale-105{% else %}hover:bg-violet-100 hover:text-violet-600{% endif %}">
-                        Documents
+                    
+                    <a href="{% url 'documents' %}" class="nav-link group flex items-center px-3 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-700 transition-all">
+                        <div class="icon-container mr-3 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 p-2 rounded-lg transition-all duration-300 group-hover:scale-110">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <span>Documents</span>
                     </a>
-                    <a href="?section=history" class="px-6 py-3 rounded-xl transition-all {% if active_section == 'history' %}bg-violet-600 text-white hover:scale-105{% else %}hover:bg-violet-100 hover:text-violet-600{% endif %}">
-                        History
+                    
+                    <a href="{% url 'analytics' %}" class="nav-link group flex items-center px-3 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-700 transition-all">
+                        <div class="icon-container mr-3 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 p-2 rounded-lg transition-all duration-300 group-hover:scale-110">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <span>Analytics</span>
                     </a>
+                    
+                    <a href="{% url 'chat' %}" class="nav-link group flex items-center px-3 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-700 transition-all">
+                        <div class="icon-container mr-3 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 p-2 rounded-lg transition-all duration-300 group-hover:scale-110">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <span>Chat</span>
+                    </a>
+                    
+                    <div class="px-3 mt-6 mb-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Tools
+                    </div>
+                    
+                    <a href="#" class="nav-link group flex items-center px-3 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-700 transition-all">
+                        <div class="icon-container mr-3 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 p-2 rounded-lg transition-all duration-300 group-hover:scale-110">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <span>Library</span>
+                    </a>
+                    
+                    <a href="#" class="nav-link group flex items-center px-3 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-700 transition-all">
+                        <div class="icon-container mr-3 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 p-2 rounded-lg transition-all duration-300 group-hover:scale-110">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <span>Study Tips</span>
+                    </a>
+                </nav>
+                
+                <!-- User Profile Section -->
+                <div class="border-t dark:border-gray-700 p-4">
+                    {% if user.is_authenticated %}
+                    <div class="group relative">
+                        <button id="userDropdownToggle" class="w-full flex items-center space-x-3 py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-700 transition-all">
+                            <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full flex items-center justify-center text-white">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium truncate">{{ user.username }}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Student</p>
+                            </div>
+                            <i class="fas fa-chevron-down text-sm text-gray-400"></i>
+                        </button>
+                        
+                        <div id="userDropdown" class="hidden absolute bottom-full left-0 mb-2 w-full bg-white dark:bg-dark-700 rounded-lg shadow-lg border dark:border-gray-700 animate-scale-in">
+                            <ul class="py-2">
+                                <li>
+                                    <a href="" class="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-dark-800">
+                                        <i class="fas fa-user-circle mr-2"></i> Profile
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="" class="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-dark-800">
+                                        <i class="fas fa-cog mr-2"></i> Settings
+                                    </a>
+                                </li>
+                                <li class="border-t dark:border-gray-700">
+                                    <form method="post" action="">
+                                        {% csrf_token %}
+                                        <button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-dark-800">
+                                            <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="space-y-2">
+                        <a href="{% url 'login' %}" class="block w-full py-2 text-center rounded-lg border border-indigo-500 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors">
+                            <i class="fas fa-sign-in-alt mr-2"></i> Login
+                        </a>
+                        <a href="{% url 'register' %}" class="block w-full py-2 text-center rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors">
+                            Get Started
+                        </a>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
-            <div class="flex items-center gap-4">
-                <span class="px-4 py-2 rounded-full bg-violet-100 text-violet-600">Premium</span>
-                <div class="w-10 h-10 rounded-full bg-gradient-to-r from-violet-600 to-pink-400"></div>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-8 py-8">
-        {% block content %}{% endblock %}
-    </main>
-
-    <!-- Error Modal -->
-    <div id="errorModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-        <div class="bg-white rounded-lg p-8 max-w-sm w-full">
-            <h2 class="text-xl font-bold mb-4">Error</h2>
-            <p id="errorMessage" class="mb-6"></p>
-            <button onclick="closeModal()" class="w-full bg-gradient-to-r from-violet-600 to-pink-400 text-white px-6 py-3 rounded-xl hover:scale-105 transition-all">
-                Close
+        </aside>
+        
+        <!-- Mobile Sidebar Toggle -->
+        <div class="fixed bottom-4 left-4 md:hidden z-50">
+            <button id="sidebarToggle" class="bg-indigo-600 text-white p-3 rounded-full shadow-lg hover:bg-indigo-700 transition-colors">
+                <i id="sidebarIcon" class="fas fa-bars"></i>
             </button>
         </div>
-    </div>
 
-    <!-- Move these script tags to the end of body -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/lib/highlight.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <script>
-        function showError(message) {
-            document.getElementById('errorMessage').textContent = message;
-            document.getElementById('errorModal').classList.remove('hidden');
-        }
-
-        function closeModal() {
-            document.getElementById('errorModal').classList.add('hidden');
-        }
-
-        {% if error_message %}
-        showError("{{ error_message }}");
-        {% endif %}
-
-        // Wait for DOM and scripts to load
-        document.addEventListener('DOMContentLoaded', function() {
-            // Configure marked with syntax highlighting
-            marked.setOptions({
-                highlight: function(code, language) {
-                    if (language && hljs.getLanguage(language)) {
-                        return hljs.highlight(code, { language: language }).value;
-                    }
-                    return hljs.highlightAuto(code).value;
-                },
-                breaks: true
-            });
-
-            // Form submission handler
-            const form = document.getElementById('qaForm');
-            if (form) {
-                form.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const formData = new FormData(form);
-                    const button = form.querySelector('button[type="submit"]');
-                    const originalButtonText = button.innerHTML;
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Header -->
+            <header class="bg-white dark:bg-dark-800 border-b dark:border-gray-700 shadow-sm">
+                <div class="px-4 py-3 flex items-center justify-between">
+                    <!-- Left: Page Title -->
+                    <div>
+                        <h1 class="text-xl font-bold" id="pageTitle">Dashboard</h1>
+                    </div>
                     
-                    try {
-                        button.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Analyzing...`;
-                        button.disabled = true;
-
-                        const response = await fetch(form.action, {
-                            method: 'POST',
-                            body: formData,
-                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                        });
-
-                        if (!response.ok) throw new Error(await response.text());
+                    <!-- Right: Action Buttons -->
+                    <div class="flex items-center space-x-3">
+                        <!-- Notifications -->
+                        <div class="relative">
+                            <button class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-dark-700 transition-colors">
+                                <i class="fas fa-bell text-gray-600 dark:text-gray-400"></i>
+                                <span class="absolute top-0 right-0 bg-red-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center animate-pulse">3</span>
+                            </button>
+                        </div>
                         
-                        const data = await response.json();
-                        document.getElementById('responseContainer').classList.remove('hidden');
-                        document.getElementById('aiResponse').innerHTML = marked.parse(data.ai_response);
+                        <!-- Search -->
+                        <div class="relative">
+                            <button class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-dark-700 transition-colors">
+                                <i class="fas fa-search text-gray-600 dark:text-gray-400"></i>
+                            </button>
+                        </div>
                         
-                        // Initialize syntax highlighting for code blocks
-                        document.querySelectorAll('pre code').forEach((block) => {
-                            hljs.highlightBlock(block);
-                        });
-                    } catch (error) {
-                        showError('Error processing request: ' + error.message);
-                    } finally {
-                        button.innerHTML = originalButtonText;
-                        button.disabled = false;
+                        <!-- Theme Toggle -->
+                        <button id="themeToggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-dark-700 transition-colors">
+                            <i class="fas fa-moon text-gray-600 dark:text-gray-400 hidden dark:block"></i>
+                            <i class="fas fa-sun text-gray-600 dark:text-gray-400 block dark:hidden"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Main Content -->
+            <main class="flex-1 overflow-y-auto p-4 relative">
+                <!-- Background Particles (decorative) -->
+                <div class="particles-container fixed inset-0 pointer-events-none z-0 opacity-30"></div>
+                
+                <!-- Content Container -->
+                <div class="relative z-10 max-w-7xl mx-auto">
+                    {% block content %}{% endblock %}
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Background Animation Script -->
+    <script>
+        // Create animated background particles
+        function createParticles() {
+            const container = document.querySelector('.particles-container');
+            if (!container) return;
+            
+            // Clear previous particles
+            container.innerHTML = '';
+            
+            // Create new particles
+            const particleCount = 30;
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // Random position
+                const posX = Math.random() * 100;
+                const posY = Math.random() * 100;
+                particle.style.left = `${posX}%`;
+                particle.style.top = `${posY}%`;
+                
+                // Random size
+                const size = Math.random() * 5 + 1;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                
+                // Random animation delay
+                particle.style.animationDelay = `${Math.random() * 5}s`;
+                
+                // Add to container
+                container.appendChild(particle);
+            }
+        }
+        
+        // Initialize sidebar toggle
+        function initSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebarIcon = document.getElementById('sidebarIcon');
+            
+            if (!sidebar || !sidebarToggle) return;
+            
+            let sidebarOpen = false;
+            
+            sidebarToggle.addEventListener('click', () => {
+                sidebarOpen = !sidebarOpen;
+                if (sidebarOpen) {
+                    sidebar.classList.remove('-translate-x-full');
+                    sidebarIcon.classList.remove('fa-bars');
+                    sidebarIcon.classList.add('fa-times');
+                } else {
+                    sidebar.classList.add('-translate-x-full');
+                    sidebarIcon.classList.remove('fa-times');
+                    sidebarIcon.classList.add('fa-bars');
+                }
+            });
+            
+            // Close sidebar initially on mobile
+            if (window.innerWidth < 768) {
+                sidebar.classList.add('-translate-x-full');
+            }
+        }
+        
+        // Initialize theme toggle
+        function initThemeToggle() {
+            const themeToggle = document.getElementById('themeToggle');
+            if (!themeToggle) return;
+            
+            themeToggle.addEventListener('click', () => {
+                document.documentElement.classList.toggle('dark');
+            });
+        }
+        
+        // Initialize user dropdown
+        function initUserDropdown() {
+            const userDropdownToggle = document.getElementById('userDropdownToggle');
+            const userDropdown = document.getElementById('userDropdown');
+            if (!userDropdownToggle || !userDropdown) return;
+            
+            userDropdownToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                userDropdown.classList.toggle('hidden');
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', () => {
+                userDropdown.classList.add('hidden');
+            });
+        }
+        
+        // Set active navigation link
+        function setActiveNavLink() {
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                // Extract just the path part without the Django template tag
+                const pathMatch = href.includes('/') ? href : '';
+                
+                if (currentPath === pathMatch || (pathMatch !== '/' && currentPath.startsWith(pathMatch))) {
+                    link.classList.add('bg-gray-100', 'dark:bg-dark-700');
+                    link.classList.add('active');
+                    
+                    // Update page title
+                    const pageTitle = document.getElementById('pageTitle');
+                    if (pageTitle) {
+                        pageTitle.textContent = link.querySelector('span').textContent;
                     }
+                }
+            });
+        }
+        
+        // Initialize all components
+        document.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+            initSidebar();
+            initThemeToggle();
+            initUserDropdown();
+            setActiveNavLink();
+            
+            // Add logo animation
+            const logo = document.querySelector('.logo-animation');
+            if (logo) {
+                logo.addEventListener('mouseenter', () => {
+                    logo.classList.add('animate-pulse');
+                });
+                logo.addEventListener('mouseleave', () => {
+                    logo.classList.remove('animate-pulse');
                 });
             }
-        });
-
-        // File input validation
-        document.getElementById('documentInput').addEventListener('change', function(e) {
-            const files = Array.from(e.target.files);
-            const maxSize = 5 * 1024 * 1024; // 5MB
-            const allowedTypes = ['application/pdf', 'text/plain', 
-                                'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
             
-            const selectedFilesContainer = document.getElementById('selectedFiles');
-            selectedFilesContainer.innerHTML = ''; // Clear previous files
-            
-            let hasError = false;
-            
-            files.forEach(file => {
-                if (!allowedTypes.includes(file.type)) {
-                    showToast(`Invalid file type: ${file.name}. Please upload PDF, DOCX, or TXT.`, 'error');
-                    hasError = true;
-                    return;
-                }
-                
-                if (file.size > maxSize) {
-                    showToast(`File size exceeds 5MB limit: ${file.name}`, 'error');
-                    hasError = true;
-                    return;
-                }
-                
-                // Create file preview element
-                const fileElement = document.createElement('div');
-                fileElement.className = 'flex items-center justify-between p-2 bg-white/10 rounded-lg';
-                fileElement.innerHTML = `
-                    <div class="flex items-center">
-                        <i class="fas fa-file-alt text-indigo-500 mr-2"></i>
-                        <span class="text-sm">${file.name}</span>
-                    </div>
-                    <button type="button" class="text-red-500 hover:text-red-700" onclick="removeFile(this)">
-                        <i class="fas fa-times"></i>
-                    </button>
-                `;
-                selectedFilesContainer.appendChild(fileElement);
+            // Add subtle animations to sidebar icons on hover
+            document.querySelectorAll('.icon-container').forEach(icon => {
+                icon.addEventListener('mouseenter', () => {
+                    icon.classList.add('animate-pulse');
+                });
+                icon.addEventListener('mouseleave', () => {
+                    icon.classList.remove('animate-pulse');
+                });
             });
-            
-            if (hasError) {
-                this.value = '';
-                selectedFilesContainer.innerHTML = '';
-            }
         });
-
-        // Add this function to remove individual files
-        function removeFile(button) {
-            const fileInput = document.getElementById('documentInput');
-            const fileElement = button.parentElement;
-            const fileName = fileElement.querySelector('span').textContent;
-            
-            // Create new FileList without the removed file
-            const dt = new DataTransfer();
-            Array.from(fileInput.files)
-                .filter(file => file.name !== fileName)
-                .forEach(file => dt.items.add(file));
-            
-            fileInput.files = dt.files;
-            fileElement.remove();
-        }
     </script>
+    
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.5);
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(156, 163, 175, 0.8);
+        }
+        
+        /* Background Particles */
+        .particle {
+            position: absolute;
+            background: linear-gradient(180deg, #5D5CDE, #8D8DFF);
+            border-radius: 50%;
+            opacity: 0.5;
+            animation: float 15s infinite ease-in-out;
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) translateX(0);
+            }
+            25% {
+                transform: translateY(-50px) translateX(20px);
+            }
+            50% {
+                transform: translateY(-20px) translateX(-30px);
+            }
+            75% {
+                transform: translateY(-70px) translateX(25px);
+            }
+        }
+        
+        /* Active Navigation Styling */
+        .nav-link {
+            position: relative;
+        }
+        
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 0;
+            background-color: transparent;
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link.active::before {
+            width: 4px;
+            background-color: #5D5CDE;
+            border-top-right-radius: 4px;
+            border-bottom-right-radius: 4px;
+        }
+    </style>
 </body>
 </html>

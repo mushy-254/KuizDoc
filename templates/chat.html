@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Chat with Voice</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/marked@4.3.0/marked.min.js"></script>
+</head>
+<body>
+    <div class="bg-gradient-to-br from-[#121533] via-[#1a2347] to-[#0c0e1a] min-h-screen text-gray-100 p-4 md:p-8">
+        <!-- Chat Header -->
+        <header class="mb-4 md:mb-8">
+            <h1 class="text-2xl md:text-3xl font-bold flex items-center">
+                <i class="fas fa-comments text-indigo-400 mr-3"></i>
+                Document Voice Chat
+            </h1>
+            <p class="text-gray-400 mt-2">Ask questions or discuss your documents with voice-enabled AI.</p>
+        </header>
+
+        <!-- Chat Container -->
+        <div class="flex flex-col h-[calc(100vh-200px)] bg-gray-800/50 rounded-xl overflow-hidden">
+            <!-- Chat History -->
+            <div id="chatHistory" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
+                <!-- Welcome Message -->
+                <div class="chat-message bot-message">
+                    <div class="message-avatar">
+                        <i class="fas fa-robot text-xl text-indigo-400"></i>
+                    </div>
+                    <div class="message-content">
+                        <div class="flex justify-between items-center mb-1">
+                            <p class="message-sender text-sm text-indigo-400">AI Assistant</p>
+                            <button class="play-audio-btn text-indigo-400 hover:text-indigo-300" data-message-id="welcome-message">
+                                <i class="fas fa-play"></i>
+                            </button>
+                        </div>
+                        <div class="text-gray-100">Hello! I'm here to help you understand your documents better. You can ask me questions, request summaries, or get clarification on specific topics. I can also respond with voice!</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Input Area -->
+            <div class="border-t border-gray-700 p-4 bg-gray-800/30">
+                <div class="flex items-center space-x-4">
+                    <!-- Voice Input Button -->
+                    <button id="voiceInputBtn" class="voice-btn" title="Voice Input">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+
+                    <!-- Text Input -->
+                    <div class="flex-1 relative">
+                        <input 
+                            type="text" 
+                            id="chatInput" 
+                            class="chat-input w-full bg-gray-700 rounded-lg px-4 py-3 pr-12 focus:ring-2 focus:ring-indigo-500" 
+                            placeholder="Ask about your document or click microphone..."
+                        >
+                        <button id="sendMessageBtn" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-indigo-400">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+
+                    <!-- Attach Document Button -->
+                    <button id="attachDocumentBtn" class="btn-icon" title="Attach Document">
+                        <i class="fas fa-paperclip"></i>
+                    </button>
+                </div>
+
+                <!-- Voice Settings -->
+                <div class="flex flex-wrap items-center gap-2 mt-4">
+                    <div class="flex items-center space-x-2 bg-gray-700/50 rounded-lg px-3 py-2">
+                        <label for="voiceSelect" class="text-sm text-gray-300">Voice:</label>
+                        <select id="voiceSelect" class="bg-gray-700 rounded text-sm p-1">
+                            <option value="Sarah">Sarah</option>
+                            <option value="George">George</option>
+                            <option value="River">River</option>
+                            <option value="Matilda">Matilda</option>
+                            <option value="Will">Will</option>
+                            <option value="Jessica">Jessica</option>
+                            <option value="Brian">Brian</option>
+                            <option value="Lily">Lily</option>
+                            <option value="Monika Sogam">Monika Sogam</option>
+                        </select>
+                    </div>
+                    <div class="voice-toggle-container">
+                        <label class="voice-toggle-switch">
+                            <input type="checkbox" id="autoPlayToggle" checked>
+                            <span class="voice-toggle-slider"></span>
+                        </label>
+                        <span class="text-sm text-gray-300 ml-2">Auto-play responses</span>
+                    </div>
+                </div>
+
+                <!-- Quick Action Buttons -->
+                <div class="flex flex-wrap gap-2 mt-4">
+                    <button class="suggestion-chip" data-prompt="Summarize the document">
+                        <i class="fas fa-file-alt mr-2"></i> Summarize
+                    </button>
+                    <button class="suggestion-chip" data-prompt="Explain key concepts">
+                        <i class="fas fa-lightbulb mr-2"></i> Explain Concepts
+                    </button>
+                    <button class="suggestion-chip" data-prompt="Generate study questions">
+                        <i class="fas fa-question-circle mr-2"></i> Study Questions
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Voice Recording Indicator -->
+        <div id="voiceIndicator" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-red-500 text-white py-2 px-6 rounded-full hidden flex items-center">
+            <div class="w-3 h-3 bg-white rounded-full mr-3 pulse-animation"></div>
+            <span>Recording...</span>
+        </div>
+
+        <!-- Audio Player (Hidden) -->
+        <audio id="audioPlayer" class="hidden"></audio>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const chatInput = document.getElementById('chatInput');
+        const sendMessageBtn = document.getElementById('sendMessageBtn');
+        const chatHistory = document.getElementById('chatHistory');
+        const voiceInputBtn = document.getElementById('voiceInputBtn');
+        const voiceIndicator = document.getElementById('voiceIndicator');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const voiceSelect = document.getElementById('voiceSelect');
+        const autoPlayToggle = document.getElementById('autoPlayToggle');
+        const attachDocumentBtn = document.getElementById('attachDocumentBtn');
+
+        let recognition;
+        let isRecording = false;
+        let currentPlayingAudioButton = null;
+        let messageIdCounter = 1;
+        let documentContext = null;
+
+        // Initialize Web Speech API for speech recognition
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = () => {
+                voiceIndicator.classList.remove('hidden');
+                isRecording = true;
+                voiceInputBtn.classList.add('recording');
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                chatInput.value = transcript;
+                // Auto send message after voice input
+                setTimeout(() => sendMessage(), 500);
+            };
+
+            recognition.onend = () => {
+                voiceIndicator.classList.add('hidden');
+                isRecording = false;
+                voiceInputBtn.classList.remove('recording');
+            };
+
+            recognition.onerror = (event) => {
+                console.error("Speech Recognition Error:", event.error);
+                voiceIndicator.classList.add('hidden');
+                isRecording = false;
+                voiceInputBtn.classList.remove('recording');
+                
+                addSystemMessageToChat("There was an error with voice recognition. Please try again or type your message.");
+            };
+        } else {
+            voiceInputBtn.disabled = true;
+            voiceInputBtn.title = "Voice input not supported in your browser";
+            
+            addSystemMessageToChat("Voice input is not supported in your browser. Please use text input instead.");
+        }
+
+        // Voice Input Button
+        voiceInputBtn.addEventListener('click', () => {
+            if (isRecording) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        });
+
+        // Send Message on Enter key
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Send Message Button
+        sendMessageBtn.addEventListener('click', sendMessage);
+
+        // Quick Action Buttons
+        document.querySelectorAll('.suggestion-chip').forEach(button => {
+            button.addEventListener('click', () => {
+                const prompt = button.getAttribute('data-prompt');
+                chatInput.value = prompt;
+                sendMessage();
+            });
+        });
+
+        // Attach Document Button
+        attachDocumentBtn.addEventListener('click', () => {
+            // Create a file input element
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = '.pdf,.doc,.docx,.txt';
+            
+            // Trigger file selection dialog
+            fileInput.click();
+            
+            // Handle file selection
+            fileInput.addEventListener('change', async (e) => {
+                if (fileInput.files.length === 0) return;
+                
+                const file = fileInput.files[0];
+                const formData = new FormData();
+                formData.append('document', file);
+                
+                // Show loading message
+                addSystemMessageToChat(`Uploading document: ${file.name}...`);
+                
+                try {
+                    // Upload the document to your Django backend
+                    const response = await fetch('/process-document/', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': getCsrfToken(),
+                        },
+                        body: formData
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Error uploading document');
+                    }
+                    
+                    const data = await response.json();
+                    
+                    // Store document context for chat
+                    documentContext = {
+                        id: data.documentId,
+                        title: file.name,
+                        wordCount: data.word_count
+                    };
+                    
+                    // Notify user
+                    addSystemMessageToChat(`Document uploaded: ${file.name}. It contains approximately ${data.word_count} words. You can now ask questions about this document.`);
+                    
+                    // Optionally show a summary if available
+                    if (data.summary) {
+                        const messageId = `msg-${messageIdCounter++}`;
+                        addMessageToChat(`Here's a summary of the document:\n\n${data.summary}`, false, messageId);
+                    }
+                    
+                } catch (error) {
+                    console.error("Document upload error:", error);
+                    addSystemMessageToChat(`Error uploading document: ${error.message}`);
+                }
+            });
+        });
+
+        // Function to send message and get AI response
+        function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+            
+            // Add user message to chat
+            addMessageToChat(message, true);
+            chatInput.value = '';
+            
+            // Show typing indicator
+            const typingIndicatorId = `typing-${Date.now()}`;
+            addTypingIndicator(typingIndicatorId);
+            
+            // Call AI with Eleven Labs voice integration
+            getAIResponseWithVoice(message, documentContext)
+                .then(response => {
+                    // Remove typing indicator
+                    removeTypingIndicator(typingIndicatorId);
+                    
+                    // Add AI response to chat
+                    const messageId = `msg-${messageIdCounter++}`;
+                    addMessageToChat(response.text, false, messageId, response.audioUrl);
+                    
+                    // Auto-play if enabled
+                    if (autoPlayToggle.checked) {
+                        playAudioResponse(messageId);
+                    }
+                })
+                .catch(error => {
+                    // Remove typing indicator
+                    removeTypingIndicator(typingIndicatorId);
+                    console.error("Error getting AI response:", error);
+                    addSystemMessageToChat("Sorry, there was an error processing your request.");
+                });
+        }
+
+        // Get AI response with ElevenLabs voice integration
+        async function getAIResponseWithVoice(message, documentContext) {
+            try {
+                // Make a request to your Django backend
+                const response = await fetch('/api/chat/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken(),
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        documentId: documentContext?.id,
+                        useVoice: true,
+                        voiceName: voiceSelect.value
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error getting AI response');
+                }
+                
+                const data = await response.json();
+                
+                return {
+                    text: data.textResponse,
+                    audioUrl: data.audioUrl,
+                    voice: data.voice
+                };
+            } catch (error) {
+                console.error("Error:", error);
+                throw error;
+            }
+        }
+        
+        // Helper to get CSRF token from cookies
+        function getCsrfToken() {
+            const cookieValue = document.cookie
+                .split('; ')
+                .find(row => row.startsWith('csrftoken='))
+                ?.split('=')[1];
+            return cookieValue || '';
+        }
+
+        // Add message to chat
+        function addMessageToChat(text, isUser, messageId = null, audioUrl = null) {
+            const id = messageId || `msg-${messageIdCounter++}`;
+            
+            let audioButton = '';
+            if (!isUser && audioUrl) {
+                audioButton = `
+                    <button class="play-audio-btn text-indigo-400 hover:text-indigo-300" data-message-id="${id}" data-audio-url="${audioUrl}">
+                        <i class="fas fa-play"></i>
+                    </button>
+                `;
+            }
+            
+            const messageHTML = `
+                <div class="chat-message ${isUser ? 'user-message' : 'bot-message'}" id="${id}">
+                    <div class="message-avatar">
+                        <i class="fas ${isUser ? 'fa-user text-purple-400' : 'fa-robot text-indigo-400'} text-xl"></i>
+                    </div>
+                    <div class="message-content">
+                        <div class="flex justify-between items-center mb-1">
+                            <p class="message-sender text-sm ${isUser ? 'text-purple-400' : 'text-indigo-400'}">
+                                ${isUser ? 'You' : 'AI Assistant'}
+                            </p>
+                            ${!isUser ? audioButton : ''}
+                        </div>
+                        <div class="text-gray-100">${isUser ? text : marked.parse(text)}</div>
+                    </div>
+                </div>`;
+                
+            chatHistory.insertAdjacentHTML('beforeend', messageHTML);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+            
+            // Add event listeners for audio buttons
+            if (!isUser && audioUrl) {
+                const button = document.querySelector(`.play-audio-btn[data-message-id="${id}"]`);
+                if (button) {
+                    button.addEventListener('click', function() {
+                        const messageId = this.getAttribute('data-message-id');
+                        playAudioResponse(messageId);
+                    });
+                }
+            }
+        }
+        
+        // Add system message (for notifications)
+        function addSystemMessageToChat(text) {
+            const messageHTML = `
+                <div class="chat-message system-message">
+                    <div class="message-content system-content text-center py-2 px-4">
+                        <p class="text-gray-400 text-sm">${text}</p>
+                    </div>
+                </div>`;
+                
+            chatHistory.insertAdjacentHTML('beforeend', messageHTML);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+        
+        // Add typing indicator
+        function addTypingIndicator(id) {
+            const indicatorHTML = `
+                <div id="${id}" class="chat-message bot-message typing-indicator">
+                    <div class="message-avatar">
+                        <i class="fas fa-robot text-xl text-indigo-400"></i>
+                    </div>
+                    <div class="message-content">
+                        <div class="flex items-center space-x-1">
+                            <div class="dot dot1"></div>
+                            <div class="dot dot2"></div>
+                            <div class="dot dot3"></div>
+                        </div>
+                    </div>
+                </div>`;
+                
+            chatHistory.insertAdjacentHTML('beforeend', indicatorHTML);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+        
+        // Remove typing indicator
+        function removeTypingIndicator(id) {
+            const indicator = document.getElementById(id);
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        // Play audio response
+        function playAudioResponse(messageId) {
+            const audioPlayer = document.getElementById('audioPlayer');
+            const allButtons = document.querySelectorAll('.play-audio-btn');
+            
+            // Reset all other buttons
+            allButtons.forEach(btn => {
+                if (btn.getAttribute('data-message-id') !== messageId) {
+                    btn.innerHTML = '<i class="fas fa-play"></i>';
+                }
+            });
+            
+            const button = document.querySelector(`.play-audio-btn[data-message-id="${messageId}"]`);
+            
+            if (button) {
+                const audioUrl = button.getAttribute('data-audio-url');
+                const isPaused = button.innerHTML.includes('play');
+                
+                if (isPaused) {
+                    // Stop any currently playing audio
+                    audioPlayer.pause();
+                    
+                    // Set the source and play
+                    audioPlayer.src = audioUrl;
+                    audioPlayer.play().catch(error => {
+                        console.error("Audio playback error:", error);
+                        addSystemMessageToChat("Error playing audio response. Please try again.");
+                    });
+                    
+                    button.innerHTML = '<i class="fas fa-pause"></i>';
+                    
+                    // Set up event listener for when audio finishes
+                    audioPlayer.onended = () => {
+                        button.innerHTML = '<i class="fas fa-play"></i>';
+                    };
+                } else {
+                    // Pause the audio
+                    audioPlayer.pause();
+                    button.innerHTML = '<i class="fas fa-play"></i>';
+                }
+            }
+        }
+
+        // Initialize welcome message audio button
+        const welcomeButton = document.querySelector(`.play-audio-btn[data-message-id="welcome-message"]`);
+        if (welcomeButton) {
+            // In a real implementation, we would fetch this audio URL from the server
+            fetch('/api/chat/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken(),
+                },
+                body: JSON.stringify({
+                    message: 'Hello',
+                    useVoice: true,
+                    voiceName: voiceSelect.value
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                welcomeButton.setAttribute('data-audio-url', data.audioUrl);
+                welcomeButton.addEventListener('click', function() {
+                    playAudioResponse('welcome-message');
+                });
+            })
+            .catch(error => {
+                console.error("Error fetching welcome audio:", error);
+                welcomeButton.style.display = 'none';
+            });
+        }
+        
+
+    });
+    </script>
+
+    <style>
+    /* Base styles */
+    .chat-message {
+        @apply flex items-start space-x-4 mb-4;
+    }
+
+    .message-avatar {
+        @apply w-10 h-10 flex items-center justify-center rounded-full bg-gray-700;
+    }
+
+    .message-content {
+        @apply flex-1 bg-gray-700/50 rounded-xl p-4;
+    }
+
+    .user-message .message-content {
+        @apply bg-purple-500/10;
+    }
+
+    .bot-message .message-content {
+        @apply bg-indigo-500/10;
+    }
+
+    .system-content {
+        @apply bg-gray-700/30 rounded-lg w-full;
+    }
+
+    .suggestion-chip {
+        @apply px-3 py-2 bg-gray-700/50 rounded-lg text-sm hover:bg-gray-700 transition-colors;
+    }
+
+    .btn-icon {
+        @apply p-2 hover:bg-gray-700/50 rounded-lg text-gray-400 hover:text-indigo-400 transition-colors;
+    }
+
+    /* Voice button styles */
+    .voice-btn {
+        @apply p-2 bg-gray-700/50 rounded-lg text-gray-400 hover:text-indigo-400 transition-colors w-10 h-10 flex items-center justify-center;
+    }
+
+    .voice-btn.recording {
+        @apply bg-red-500/50 text-white;
+        animation: pulse 1.5s infinite;
+    }
+
+    /* Voice toggle switch */
+    .voice-toggle-container {
+        @apply flex items-center bg-gray-700/50 rounded-lg px-3 py-2;
+    }
+
+    .voice-toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 40px;
+        height: 20px;
+    }
+
+    .voice-toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .voice-toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #4B5563;
+        transition: .4s;
+        border-radius: 20px;
+    }
+
+    .voice-toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 16px;
+        width: 16px;
+        left: 2px;
+        bottom: 2px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+
+    input:checked + .voice-toggle-slider {
+        background-color: #5D5CDE;
+    }
+
+    input:checked + .voice-toggle-slider:before {
+        transform: translateX(20px);
+    }
+
+    /* Typing indicator */
+    .typing-indicator .dot {
+        @apply bg-gray-400 rounded-full w-2 h-2 inline-block;
+        animation: bounce 1.4s infinite;
+    }
+
+    .typing-indicator .dot2 {
+        animation-delay: 0.2s;
+    }
+
+    .typing-indicator .dot3 {
+        animation-delay: 0.4s;
+    }
+
+    /* Pulse animation */
+    .pulse-animation {
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+        0% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.3;
+        }
+        100% {
+            opacity: 1;
+        }
+    }
+
+    @keyframes bounce {
+        0%, 80%, 100% { 
+            transform: translateY(0);
+        }
+        40% { 
+            transform: translateY(-5px);
+        }
+    }
+
+    /* Override marked.js styles for better dark mode compatibility */
+    .message-content a {
+        @apply text-indigo-400 hover:text-indigo-300 underline;
+    }
+
+    .message-content code {
+        @apply bg-gray-800 px-1 py-0.5 rounded text-sm;
+    }
+
+    .message-content pre {
+        @apply bg-gray-800 p-2 rounded my-2 overflow-x-auto;
+    }
+
+    .message-content blockquote {
+        @apply border-l-4 border-indigo-500 pl-4 italic my-2;
+    }
+
+    .message-content ul, .message-content ol {
+        @apply pl-6 my-2;
+    }
+
+    .message-content ul {
+        @apply list-disc;
+    }
+
+    .message-content ol {
+        @apply list-decimal;
+    }
+
+    /* Make sure code blocks don't overflow on mobile */
+    @media (max-width: 640px) {
+        pre {
+            max-width: calc(100vw - 120px);
+        }
+    }
+    </style>
+</body>
+</html>

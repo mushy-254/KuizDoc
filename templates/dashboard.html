@@ -1,678 +1,462 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="bg-gradient-to-br from-[#121533] via-[#1a2347] to-[#0c0e1a] min-h-screen text-gray-100 p-8">
-    <!-- Header Section -->
-    <header class="relative mb-12 overflow-hidden rounded-3xl">
-        <div id="particle-background" class="absolute inset-0 z-0"></div>
-        <div class="relative z-10 p-8 text-center">
-            <h1 class="text-5xl font-bold mb-4 animate-gradient-text bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500">
-                Welcome, {{ user.username }}
+<!-- Enhanced Dashboard Content -->
+<div id="dashboard-content" class="animate-fade-in">
+    <!-- Welcome Section with Time-based Greeting -->
+    <div class="relative overflow-hidden bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 mb-6 shadow-lg animate-fade-in">
+        <div class="absolute right-0 top-0 -mr-16 opacity-20">
+            <i class="fas fa-brain text-9xl text-white"></i>
+        </div>
+        
+        <div class="relative z-10">
+            <div class="flex items-center space-x-4 mb-2">
+                <div id="greeting" class="text-2xl md:text-3xl font-bold text-white"></div>
+                <div class="animate-bounce bg-white rounded-full p-1">
+                    <span id="greetingEmoji" class="text-xl"></span>
+                </div>
+            </div>
+            
+            <h1 class="text-4xl font-bold text-white mb-2">
+                {{ user.first_name|default:user.username }}
             </h1>
-            <p class="text-xl text-gray-300 max-w-2xl mx-auto animate-fade-in">
-                Your intelligent learning companion is ready to transform your study experience
+            
+            <p class="text-indigo-100 max-w-lg overflow-hidden whitespace-nowrap">
+                Your AI study companion is ready to help you succeed
             </p>
+            
+            <div class="mt-4 flex flex-wrap gap-3">
+                <a href="{% url 'documents' %}" class="bg-white/20 hover:bg-white/30 transition-colors text-white px-4 py-2 rounded-lg backdrop-blur-sm flex items-center">
+                    <i class="fas fa-upload mr-2"></i> Upload Documents
+                </a>
+                <a href="{% url 'chat' %}" class="bg-white/20 hover:bg-white/30 transition-colors text-white px-4 py-2 rounded-lg backdrop-blur-sm flex items-center">
+                    <i class="fas fa-comments mr-2"></i> Chat with AI
+                </a>
+            </div>
         </div>
-    </header>
-
-    <!-- Analytics Dashboard -->
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-        <!-- Learning Progress Card -->
-        <article class="dashboard-card hover-effect-purple">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="dashboard-card-title">Learning Progress</h2>
-                <div class="flex space-x-2">
-                    <button class="time-filter-btn">Week</button>
-                    <button class="time-filter-btn">Month</button>
+    </div>
+    
+    <!-- Stats Cards with Animation -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="stat-card bg-white dark:bg-dark-800 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 animate-scale-in" style="animation-delay: 0.1s">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-gray-500 dark:text-gray-400 text-sm">Documents</h3>
+                <div class="stat-icon bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 p-2 rounded-lg">
+                    <i class="fas fa-file-alt"></i>
                 </div>
             </div>
-            <canvas id="learningProgressChart" class="w-full h-64"></canvas>
-        </article>
-
-        <!-- Document Insights Card -->
-        <article class="dashboard-card hover-effect-cyan">
-            <h2 class="dashboard-card-title mb-6">Document Insights</h2>
-            <div class="space-y-4">
-                <div class="metric-card">
-                    <div>
-                        <h3 class="metric-title">Total Documents</h3>
-                        <p class="metric-value">{{ total_documents }}</p>
-                    </div>
-                    <i class="fas fa-file-alt metric-icon"></i>
-                </div>
-                <div class="metric-card">
-                    <div>
-                        <h3 class="metric-title">Analysis Completed</h3>
-                        <p class="metric-value">{{ analyzed_documents }}</p>
-                    </div>
-                    <i class="fas fa-chart-pie metric-icon"></i>
+            <p class="text-3xl font-bold">12</p>
+            <div class="flex items-center mt-2 text-sm">
+                <span class="text-green-500 flex items-center">
+                    <i class="fas fa-arrow-up mr-1"></i> 16%
+                </span>
+                <span class="text-gray-500 dark:text-gray-400 ml-2">vs last week</span>
+            </div>
+        </div>
+        
+        <div class="stat-card bg-white dark:bg-dark-800 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 animate-scale-in" style="animation-delay: 0.2s">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-gray-500 dark:text-gray-400 text-sm">Study Hours</h3>
+                <div class="stat-icon bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 p-2 rounded-lg">
+                    <i class="fas fa-clock"></i>
                 </div>
             </div>
-        </article>
-
-        <!-- Achievements Card -->
-        <article class="dashboard-card hover-effect-pink">
-            <h2 class="dashboard-card-title mb-6">Achievements</h2>
-            <div class="grid grid-cols-3 gap-4">
-                {% for achievement in achievements %}
-                <div class="achievement-item">
-                    <div class="achievement-icon">
-                        <i class="{{ achievement.icon }} text-2xl text-white"></i>
-                    </div>
-                    <p class="achievement-label">{{ achievement.name }}</p>
-                </div>
-                {% endfor %}
+            <p class="text-3xl font-bold">24.5</p>
+            <div class="flex items-center mt-2 text-sm">
+                <span class="text-green-500 flex items-center">
+                    <i class="fas fa-arrow-up mr-1"></i> 23%
+                </span>
+                <span class="text-gray-500 dark:text-gray-400 ml-2">vs last week</span>
             </div>
-        </article>
-    </section>
-
-    <!-- Document Interaction Section -->
-    <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Document Management Column -->
-        <div class="lg:col-span-1 space-y-6">
-            <!-- Upload Card -->
-            <div class="dashboard-card">
-                <h2 class="text-xl font-semibold mb-4 flex items-center">
-                    <i class="fas fa-cloud-upload-alt mr-3 text-indigo-400"></i>
-                    Document Upload
+        </div>
+        
+        <div class="stat-card bg-white dark:bg-dark-800 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 animate-scale-in" style="animation-delay: 0.3s">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-gray-500 dark:text-gray-400 text-sm">Current Streak</h3>
+                <div class="stat-icon bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 p-2 rounded-lg">
+                    <i class="fas fa-fire"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold">7 <span class="text-lg font-normal text-gray-500 dark:text-gray-400">days</span></p>
+            <div class="flex items-center mt-2 text-sm">
+                <span class="text-gray-500 dark:text-gray-400">Best: 14 days</span>
+            </div>
+        </div>
+        
+        <div class="stat-card bg-white dark:bg-dark-800 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 animate-scale-in" style="animation-delay: 0.4s">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-gray-500 dark:text-gray-400 text-sm">Topics Mastered</h3>
+                <div class="stat-icon bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 p-2 rounded-lg">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold">24</p>
+            <div class="flex items-center mt-2 text-sm">
+                <span class="text-green-500 flex items-center">
+                    <i class="fas fa-plus mr-1"></i> 3
+                </span>
+                <span class="text-gray-500 dark:text-gray-400 ml-2">this week</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Two-Column Layout: Recent Activity and Recent Documents -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <!-- Recent Activity Timeline -->
+        <div class="lg:col-span-1 bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden animate-slide-in" style="animation-delay: 0.5s">
+            <div class="p-5 border-b dark:border-gray-700">
+                <h2 class="text-lg font-semibold flex items-center">
+                    <i class="fas fa-history text-indigo-500 mr-2"></i>
+                    Recent Activity
                 </h2>
+            </div>
+            
+            <div class="p-5 space-y-5 max-h-96 overflow-y-auto">
+                <!-- Activity items with alternating colors -->
+                <div class="activity-item flex">
+                    <div class="timeline-dot bg-green-500"></div>
+                    <div class="ml-4">
+                        <p class="font-medium">Completed reading</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Machine Learning Fundamentals</p>
+                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">10 minutes ago</p>
+                    </div>
+                </div>
                 
-                <div id="dropZone" class="upload-container group">
-                    <input type="file" id="documentUpload" class="hidden" accept=".pdf,.docx,.txt" multiple>
-                    <label for="documentUpload" class="cursor-pointer">
-                        <div class="upload-icon">
-                            <i class="fas fa-cloud-upload-alt text-4xl text-indigo-400 mb-4"></i>
-                        </div>
-                        <h3 class="upload-title text-lg font-medium mb-2">Upload Documents</h3>
-                        <p class="upload-subtitle text-sm text-gray-400">
-                            Drag and drop your files here or click to browse
-                        </p>
-                        <div class="mt-4 text-xs text-gray-500">
-                            <span class="inline-flex items-center px-2 py-1 bg-gray-800/50 rounded-lg mr-2">
-                                <i class="fas fa-file-pdf mr-1"></i> PDF
-                            </span>
-                            <span class="inline-flex items-center px-2 py-1 bg-gray-800/50 rounded-lg mr-2">
-                                <i class="fas fa-file-word mr-1"></i> DOCX
-                            </span>
-                            <span class="inline-flex items-center px-2 py-1 bg-gray-800/50 rounded-lg">
-                                <i class="fas fa-file-alt mr-1"></i> TXT
-                            </span>
-                        </div>
-                    </label>
-                </div>
-            </div>
-
-            <!-- Document List Card -->
-            <div class="dashboard-card">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold flex items-center">
-                        <i class="fas fa-folder-open mr-3 text-indigo-400"></i>
-                        Your Documents
-                    </h2>
-                    <div class="flex space-x-2">
-                        <button class="p-2 hover:bg-gray-800/50 rounded-lg text-gray-400 hover:text-white">
-                            <i class="fas fa-sort-alpha-down"></i>
-                        </button>
-                        <button class="p-2 hover:bg-gray-800/50 rounded-lg text-gray-400 hover:text-white">
-                            <i class="fas fa-filter"></i>
-                        </button>
+                <div class="activity-item flex">
+                    <div class="timeline-dot bg-blue-500"></div>
+                    <div class="ml-4">
+                        <p class="font-medium">Uploaded new document</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Research_Paper.pdf</p>
+                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">2 hours ago</p>
                     </div>
                 </div>
-
-                <div id="uploadedDocuments" class="space-y-4">
-                    <!-- Document items will be inserted here -->
+                
+                <div class="activity-item flex">
+                    <div class="timeline-dot bg-purple-500"></div>
+                    <div class="ml-4">
+                        <p class="font-medium">AI Chat session</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Generated 5 practice questions</p>
+                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Yesterday at 7:32 PM</p>
+                    </div>
+                </div>
+                
+                <div class="activity-item flex">
+                    <div class="timeline-dot bg-amber-500"></div>
+                    <div class="ml-4">
+                        <p class="font-medium">Earned achievement</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">3-Day Study Streak</p>
+                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Yesterday at 9:15 AM</p>
+                    </div>
+                </div>
+                
+                <div class="activity-item flex">
+                    <div class="timeline-dot bg-red-500"></div>
+                    <div class="ml-4">
+                        <p class="font-medium">Created flashcards</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Neural Networks - 15 cards</p>
+                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">2 days ago</p>
+                    </div>
                 </div>
             </div>
-
-            <!-- Quick Stats Card -->
-            <div class="dashboard-card">
-                <h2 class="text-xl font-semibold mb-4 flex items-center">
-                    <i class="fas fa-chart-pie mr-3 text-indigo-400"></i>
-                    Document Stats
+        </div>
+        
+        <!-- Your Documents Preview -->
+        <div class="lg:col-span-2 bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden animate-slide-in" style="animation-delay: 0.6s">
+            <div class="p-5 border-b dark:border-gray-700 flex justify-between items-center">
+                <h2 class="text-lg font-semibold flex items-center">
+                    <i class="fas fa-file-alt text-indigo-500 mr-2"></i>
+                    Recent Documents
                 </h2>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="p-4 bg-gray-800/30 rounded-xl">
-                        <p class="text-sm text-gray-400">Total Documents</p>
-                        <p class="text-2xl font-semibold mt-1">{{ total_documents }}</p>
-                    </div>
-                    <div class="p-4 bg-gray-800/30 rounded-xl">
-                        <p class="text-sm text-gray-400">Pages Analyzed</p>
-                        <p class="text-2xl font-semibold mt-1">{{ total_pages }}</p>
-                    </div>
-                </div>
+                <a href="{% url 'documents' %}" class="text-sm text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                    View All
+                </a>
             </div>
-        </div>
-
-        <!-- Content Analysis Column -->
-        <div class="lg:col-span-2 space-y-6">
-            <!-- Document Summary Card -->
-            <div id="documentSummary" class="dashboard-card hidden animate-slide-in">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-semibold flex items-center">
-                        <i class="fas fa-file-alt mr-3 text-indigo-400"></i>
-                        Document Summary
-                    </h2>
-                    <div class="flex space-x-3">
-                        <button class="btn-icon" title="Copy to clipboard">
-                            <i class="fas fa-copy"></i>
-                        </button>
-                        <button class="btn-icon" title="Download summary">
-                            <i class="fas fa-download"></i>
-                        </button>
-                        <button class="btn-icon" title="Read aloud">
-                            <i class="fas fa-volume-up"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="summary-container bg-gray-800/30 p-6 rounded-xl">
-                    <div id="summaryText" class="prose prose-invert max-w-none">
-                        <!-- Summary content will be inserted here -->
-                    </div>
-                    
-                    <div class="flex flex-wrap gap-4 mt-6">
-                        <button class="btn-primary">
-                            <i class="fas fa-brain mr-2"></i>
-                            Generate Quiz
-                        </button>
-                        <button class="btn-secondary">
-                            <i class="fas fa-lightbulb mr-2"></i>
-                            Key Insights
-                        </button>
-                        <button class="btn-secondary">
-                            <i class="fas fa-comments mr-2"></i>
-                            Discussion Points
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Interactive Chat Card -->
-            <div class="dashboard-card">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-semibold flex items-center">
-                        <i class="fas fa-comments mr-3 text-indigo-400"></i>
-                        Document Q&A
-                    </h2>
-                    <div class="flex items-center space-x-4">
-                        <select class="bg-gray-800/30 border border-gray-700 rounded-lg px-3 py-2 text-sm">
-                            <option value="casual">Casual Mode</option>
-                            <option value="academic">Academic Mode</option>
-                            <option value="expert">Expert Mode</option>
-                        </select>
-                        <button class="btn-icon" title="Clear chat">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="chat-container bg-gray-800/30 rounded-xl">
-                    <div id="chatMessages" class="chat-messages p-6 space-y-4 max-h-[400px] overflow-y-auto">
-                        <!-- Welcome message -->
-                        <div class="chat-message bot-message">
-                            <div class="message-avatar">
-                                <i class="fas fa-robot"></i>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-5 max-h-96 overflow-y-auto">
+                <!-- Document Cards -->
+                <div class="document-card group border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-indigo-500 dark:hover:border-indigo-500 transition-colors">
+                    <div class="flex items-start">
+                        <div class="text-red-500 dark:text-red-400 mr-3">
+                            <i class="fas fa-file-pdf text-2xl"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-medium truncate">Machine_Learning_Notes.pdf</p>
+                            <div class="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                <span>4.2 MB</span>
+                                <span class="mx-2">•</span>
+                                <span>24 pages</span>
                             </div>
-                            <div class="message-content">
-                                <p class="message-sender">AI Assistant</p>
-                                <p>Hello! I'm here to help you understand your documents better. You can ask me questions about the content, request summaries, or get clarification on specific topics.</p>
+                            <div class="mt-2.5">
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span>Progress</span>
+                                    <span>75%</span>
+                                </div>
+                                <div class="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-indigo-500 rounded-full" style="width: 75%"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="chat-input-container p-4 border-t border-gray-700">
-                        <div class="flex items-center space-x-4">
-                            <button id="voiceInputBtn" class="btn-icon" title="Voice input">
-                                <i class="fas fa-microphone"></i>
-                            </button>
-                            <div class="flex-1 relative">
-                                <input type="text" 
-                                       id="chatInput"
-                                       class="chat-input w-full bg-gray-800/50 border border-gray-700 rounded-xl px-4 py-3 pr-12"
-                                       placeholder="Ask about your document...">
-                                <button class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
-                                    <i class="fas fa-paper-plane"></i>
-                                </button>
-                            </div>
-                            <button class="btn-icon" title="Upload attachment">
-                                <i class="fas fa-paperclip"></i>
-                            </button>
+                </div>
+                
+                <div class="document-card group border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-indigo-500 dark:hover:border-indigo-500 transition-colors">
+                    <div class="flex items-start">
+                        <div class="text-blue-500 dark:text-blue-400 mr-3">
+                            <i class="fas fa-file-word text-2xl"></i>
                         </div>
-                        
-                        <!-- Suggestion chips -->
-                        <div class="flex flex-wrap gap-2 mt-4">
-                            <button class="suggestion-chip">
-                                Summarize key points
-                            </button>
-                            <button class="suggestion-chip">
-                                Explain difficult concepts
-                            </button>
-                            <button class="suggestion-chip">
-                                Generate study questions
-                            </button>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-medium truncate">Project_Proposal.docx</p>
+                            <div class="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                <span>2.8 MB</span>
+                                <span class="mx-2">•</span>
+                                <span>12 pages</span>
+                            </div>
+                            <div class="mt-2.5">
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span>Progress</span>
+                                    <span>100%</span>
+                                </div>
+                                <div class="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-green-500 rounded-full" style="width: 100%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="document-card group border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-indigo-500 dark:hover:border-indigo-500 transition-colors">
+                    <div class="flex items-start">
+                        <div class="text-amber-500 dark:text-amber-400 mr-3">
+                            <i class="fas fa-file-powerpoint text-2xl"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-medium truncate">Data_Visualization.pptx</p>
+                            <div class="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                <span>8.5 MB</span>
+                                <span class="mx-2">•</span>
+                                <span>18 slides</span>
+                            </div>
+                            <div class="mt-2.5">
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span>Progress</span>
+                                    <span>60%</span>
+                                </div>
+                                <div class="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-amber-500 rounded-full" style="width: 60%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="document-card group border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-indigo-500 dark:hover:border-indigo-500 transition-colors">
+                    <div class="flex items-start">
+                        <div class="text-gray-500 dark:text-gray-400 mr-3">
+                            <i class="fas fa-file-alt text-2xl"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-medium truncate">Research_Notes.txt</p>
+                            <div class="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                <span>0.5 MB</span>
+                                <span class="mx-2">•</span>
+                                <span>5,432 words</span>
+                            </div>
+                            <div class="mt-2.5">
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span>Progress</span>
+                                    <span>90%</span>
+                                </div>
+                                <div class="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-indigo-500 rounded-full" style="width: 90%"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+    
+    <!-- Quick Actions/Tools Section -->
+    <div class="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-5 mb-6 animate-scale-in" style="animation-delay: 0.7s">
+        <h2 class="text-lg font-semibold mb-4 flex items-center">
+            <i class="fas fa-bolt text-indigo-500 mr-2"></i>
+            Quick Tools
+        </h2>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <a href="#" class="quick-tool group flex flex-col items-center p-4 border border-gray-200 dark:border-gray-700 rounded-xl hover:border-indigo-500 dark:hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all">
+                <div class="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-3 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-brain text-xl"></i>
+                </div>
+                <p class="font-medium text-center">AI Summarizer</p>
+            </a>
+            
+            <a href="#" class="quick-tool group flex flex-col items-center p-4 border border-gray-200 dark:border-gray-700 rounded-xl hover:border-indigo-500 dark:hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all">
+                <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center text-green-600 dark:text-green-400 mb-3 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-clipboard-check text-xl"></i>
+                </div>
+                <p class="font-medium text-center">Quiz Generator</p>
+            </a>
+            
+            <a href="#" class="quick-tool group flex flex-col items-center p-4 border border-gray-200 dark:border-gray-700 rounded-xl hover:border-indigo-500 dark:hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all">
+                <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center text-purple-600 dark:text-purple-400 mb-3 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-sticky-note text-xl"></i>
+                </div>
+                <p class="font-medium text-center">Flashcards</p>
+            </a>
+            
+            <a href="#" class="quick-tool group flex flex-col items-center p-4 border border-gray-200 dark:border-gray-700 rounded-xl hover:border-indigo-500 dark:hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all">
+                <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400 mb-3 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-project-diagram text-xl"></i>
+                </div>
+                <p class="font-medium text-center">Mind Mapping</p>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Upcoming Study Schedule -->
+    <div class="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-5 animate-slide-in" style="animation-delay: 0.8s">
+        <h2 class="text-lg font-semibold mb-4 flex items-center">
+            <i class="fas fa-calendar-alt text-indigo-500 mr-2"></i>
+            Upcoming Schedule
+        </h2>
+        
+        <div class="space-y-4">
+            <div class="flex items-center p-3 rounded-lg bg-gray-50 dark:bg-dark-700 border border-gray-200 dark:border-gray-700">
+                <div class="mr-4 min-w-fit text-center">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Today</p>
+                    <p class="text-xl font-bold">15</p>
+                </div>
+                <div class="flex-1">
+                    <p class="font-medium">Machine Learning Concepts</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">2:00 PM - 4:00 PM</p>
+                </div>
+                <div class="flex space-x-2">
+                    <button class="p-2 text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="flex items-center p-3 rounded-lg bg-gray-50 dark:bg-dark-700 border border-gray-200 dark:border-gray-700">
+                <div class="mr-4 min-w-fit text-center">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Tomorrow</p>
+                    <p class="text-xl font-bold">16</p>
+                </div>
+                <div class="flex-1">
+                    <p class="font-medium">Data Structures Review</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">10:00 AM - 12:00 PM</p>
+                </div>
+                <div class="flex space-x-2">
+                    <button class="p-2 text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <a href="#" class="flex justify-center items-center p-2 text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                <i class="fas fa-plus mr-2"></i> Add New Study Session
+            </a>
+        </div>
+    </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/particles.js/particles.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script>
-// Configuration and Constants
-const API_ENDPOINTS = {
-    PROCESS_DOCUMENT: '/process-document/',
-    GENERATE_QUIZ: '/generate-quiz/',
-    CHAT_INTERACTION: '/chat-interaction/',
-    PROCESS_VOICE: '/process-voice/'
-};
-
-// CSRF Token Handling
-const getCSRFToken = () => {
-    const cookieValue = document.cookie.match(/csrftoken=([^ ;]+)/);
-    return cookieValue ? cookieValue[1] : null;
-};
-
-// UI Utilities
-const UI = {
-    showLoading: (message) => {
-        const loadingHTML = `
-            <div id="loadingOverlay" class="loading-overlay">
-                <div class="loading-content">
-                    <div class="loading-spinner"></div>
-                    <p>${message}</p>
-                </div>
-            </div>`;
-        document.body.insertAdjacentHTML('beforeend', loadingHTML);
-    },
-
-    hideLoading: () => {
-        const overlay = document.getElementById('loadingOverlay');
-        if (overlay) overlay.remove();
-    },
-
-    showError: (message) => {
-        const errorHTML = `
-            <div class="error-toast">
-                <i class="fas fa-exclamation-circle mr-2"></i>
-                ${message}
-            </div>`;
-        const toast = document.createElement('div');
-        toast.innerHTML = errorHTML;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 5000);
-    }
-};
-
-// Chart Initialization
-const initProgressChart = () => {
-    const ctx = document.getElementById('learningProgressChart').getContext('2d');
-    return new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-            datasets: [{
-                label: 'Learning Progress',
-                data: [65, 78, 82, 75, 90, 85, 88],
-                borderColor: 'rgba(45, 211, 172, 1)',
-                backgroundColor: 'rgba(45, 211, 172, 0.2)',
-                tension: 0.4,
-                borderWidth: 3
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: { 
-                    beginAtZero: true,
-                    grid: { color: 'rgba(255,255,255,0.1)' }
-                },
-                x: { 
-                    grid: { color: 'rgba(255,255,255,0.1)' } 
-                }
-            },
-            plugins: {
-                legend: { display: false }
-            }
-        }
-    });
-};
-
-// Document Upload Handler
-const setupDocumentUpload = () => {
-    const uploadInput = document.getElementById('documentUpload');
-    const uploadedDocumentsList = document.getElementById('uploadedDocuments');
-    const dropZone = document.getElementById('dropZone');
-
-    const createDocumentItem = (file) => {
-        const itemHTML = `
-            <div class="document-item" data-file="${file.name}">
-                <div class="document-icon">
-                    <i class="${getFileIcon(file)}"></i>
-                </div>
-                <div class="document-details">
-                    <h4 class="document-title">${file.name}</h4>
-                    <div class="document-progress">
-                        <div class="progress-bar" style="width: 0%"></div>
-                    </div>
-                </div>
-                <div class="document-status">
-                    <span class="status-badge status-uploading">Uploading</span>
-                </div>
-            </div>`;
-        uploadedDocumentsList.insertAdjacentHTML('beforeend', itemHTML);
-        return uploadedDocumentsList.lastElementChild;
-    };
-
-    const updateDocumentStatus = (fileName, status, summary) => {
-        const item = uploadedDocumentsList.querySelector(`[data-file="${fileName}"]`);
-        if (item) {
-            const statusElement = item.querySelector('.status-badge');
-            const progressBar = item.querySelector('.progress-bar');
-            
-            statusElement.className = `status-badge status-${status}`;
-            statusElement.textContent = status;
-
-            if (status === 'processed') {
-                progressBar.style.width = '100%';
-                item.addEventListener('click', () => showDocumentSummary(summary));
-            }
-        }
-    };
-
-    const handleUpload = async (files) => {
-        const uploadPromises = Array.from(files).map(async (file) => {
-            const listItem = createDocumentItem(file);
-            const formData = new FormData();
-            formData.append('document', file);
-
-            try {
-                const response = await fetch(API_ENDPOINTS.PROCESS_DOCUMENT, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-CSRFToken': getCSRFToken()
-                    }
-                });
-
-                if (!response.ok) throw new Error('Upload failed');
-                
-                const data = await response.json();
-                updateDocumentStatus(file.name, 'processed', data.summary);
-                return data;
-
-            } catch (error) {
-                updateDocumentStatus(file.name, 'failed');
-                console.error(`Upload failed for ${file.name}:`, error);
-                return null;
-            }
-        });
-
-        try {
-            UI.showLoading('Processing documents...');
-            const results = await Promise.all(uploadPromises);
-            const successfulUploads = results.filter(r => r !== null);
-            
-            if (successfulUploads.length > 0) {
-                document.getElementById('documentSummary').classList.remove('hidden');
-                document.getElementById('summaryText').innerHTML = successfulUploads
-                    .map(r => marked.parse(r.summary))
-                    .join('<hr class="my-4 border-t-2 border-purple-800">');
-            }
-        } catch (error) {
-            UI.showError('Error processing documents');
-        } finally {
-            UI.hideLoading();
-        }
-    };
-
-    // Add drag and drop handlers
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(event => {
-        dropZone.addEventListener(event, (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-        }, false);
-    });
-
-    ['dragenter', 'dragover'].forEach(event => {
-        dropZone.addEventListener(event, () => {
-            dropZone.classList.add('dragover');
-        }, false);
-    });
-
-    ['dragleave', 'drop'].forEach(event => {
-        dropZone.addEventListener(event, () => {
-            dropZone.classList.remove('dragover');
-        }, false);
-    });
-
-    dropZone.addEventListener('drop', (e) => {
-        const files = e.dataTransfer.files;
-        if (files.length) {
-            handleUpload(files);
-        }
-    });
-
-    uploadInput.addEventListener('change', (e) => {
-        if (e.target.files.length > 0) {
-            handleUpload(e.target.files);
-        }
-    });
-};
-
-// Add helper function for file icons
-const getFileIcon = (file) => {
-    const extension = file.name.split('.').pop().toLowerCase();
-    const iconMap = {
-        pdf: 'fas fa-file-pdf',
-        docx: 'fas fa-file-word',
-        txt: 'fas fa-file-alt'
-    };
-    return iconMap[extension] || 'fas fa-file';
-};
-
-// Chat System
-const setupChatSystem = () => {
-    const chatInput = document.getElementById('chatInput');
-    const sendBtn = document.getElementById('sendMessageBtn');
-    const chatMessages = document.getElementById('chatMessages');
-
-    const addMessage = (text, isUser) => {
-        const messageHTML = `
-            <div class="chat-message ${isUser ? 'user-message' : 'bot-message'}">
-                <div class="message-content">${text}</div>
-            </div>`;
-        chatMessages.insertAdjacentHTML('beforeend', messageHTML);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    };
-
-    const handleSendMessage = async () => {
-        const message = chatInput.value.trim();
-        if (!message) return;
-
-        addMessage(message, true);
-        chatInput.value = '';
-
-        try {
-            const response = await fetch(API_ENDPOINTS.CHAT_INTERACTION, {
-                method: 'POST',
-                body: JSON.stringify({ question: message }),
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCSRFToken()
-                }
-            });
-
-            if (!response.ok) throw new Error('Chat response error');
-            
-            const data = await response.json();
-            addMessage(data.text_response, false);
-
-        } catch (error) {
-            UI.showError(`Chat error: ${error.message}`);
-        }
-    };
-
-    sendBtn.addEventListener('click', handleSendMessage);
-    chatInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleSendMessage();
-    });
-};
-
-// Add these functions to handle voice interaction
-const handleVoiceInteraction = async (audioBlob, activeDocument = null) => {
-    const formData = new FormData();
-    formData.append('audio', audioBlob, 'recording.wav');
-    
-    if (activeDocument) {
-        formData.append('document', activeDocument);
-    }
-
-    try {
-        UI.showLoading('Processing voice input...');
-        
-        const response = await fetch('/api/process-voice/', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRFToken': getCSRFToken()
-            }
-        });
-
-        const data = await response.json();
-        
-        if (!response.ok) {
-            throw new Error(data.error || 'Failed to process voice input');
-        }
-
-        // Add transcription to chat
-        addMessageToChat(data.transcription, true);
-
-        // Add AI response to chat
-        addMessageToChat(data.ai_response, false);
-
-        // Handle audio response if available
-        if (data.audio_url) {
-            const audioPlayer = new Audio(data.audio_url);
-            document.getElementById('playAudioBtn').onclick = () => {
-                audioPlayer.play();
-                document.getElementById('playAudioBtn').classList.add('hidden');
-                document.getElementById('pauseAudioBtn').classList.remove('hidden');
-            };
-            
-            document.getElementById('pauseAudioBtn').onclick = () => {
-                audioPlayer.pause();
-                document.getElementById('pauseAudioBtn').classList.add('hidden');
-                document.getElementById('playAudioBtn').classList.remove('hidden');
-            };
-
-            // Show audio controls
-            document.getElementById('playAudioBtn').classList.remove('hidden');
-        }
-
-    } catch (error) {
-        UI.showError(`Error: ${error.message}`);
-    } finally {
-        UI.hideLoading();
-    }
-};
-
-// Update the existing processAudio function
-async function processAudio(audioBlob) {
-    const activeDocument = document.querySelector('input[name="document"]').files[0];
-    await handleVoiceInteraction(audioBlob, activeDocument);
+<style>
+/* Timeline dots for activity feed */
+.activity-item {
+    position: relative;
 }
 
-// Initialization
+.timeline-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-top: 4px;
+}
+
+.activity-item::before {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 16px;
+    bottom: -20px;
+    width: 2px;
+    background-color: rgba(156, 163, 175, 0.3);
+}
+
+.activity-item:last-child::before {
+    display: none;
+}
+
+/* Stats Card Hover Effects */
+.stat-card:hover .stat-icon {
+    transform: scale(1.1);
+    transition: transform 0.3s ease;
+}
+
+/* Quick tool hover effects */
+.quick-tool:hover {
+    transform: translateY(-5px);
+}
+</style>
+
+<script>
+// Set time-based greeting
+function setGreeting() {
+    const greeting = document.getElementById('greeting');
+    const greetingEmoji = document.getElementById('greetingEmoji');
+    if (!greeting || !greetingEmoji) return;
+    
+    const hour = new Date().getHours();
+    let greetingText, emoji;
+    
+    if (hour >= 5 && hour < 12) {
+        greetingText = 'Good morning';
+        emoji = '☀️';
+    } else if (hour >= 12 && hour < 18) {
+        greetingText = 'Good afternoon';
+        emoji = '🌤️';
+    } else {
+        greetingText = 'Good evening';
+        emoji = '🌙';
+    }
+    
+    greeting.textContent = greetingText;
+    greetingEmoji.textContent = emoji;
+}
+
+// Animated entrance for document cards
+function setupDocumentCards() {
+    document.querySelectorAll('.document-card').forEach((card, index) => {
+        card.style.animationDelay = `${0.1 * (index + 1)}s`;
+        card.classList.add('animate-scale-in');
+    });
+}
+
+// Add animation to stat cards on hover
+function setupStatCards() {
+    document.querySelectorAll('.stat-card').forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            card.querySelector('.stat-icon').classList.add('animate-pulse');
+        });
+        card.addEventListener('mouseleave', () => {
+            card.querySelector('.stat-icon').classList.remove('animate-pulse');
+        });
+    });
+}
+
+// Initialize dashboard components
 document.addEventListener('DOMContentLoaded', () => {
-    particlesJS('particle-background', {/*... particle config ...*/});
-    initProgressChart();
-    setupDocumentUpload();
-    setupChatSystem();
+    setGreeting();
+    setupDocumentCards();
+    setupStatCards();
 });
 </script>
-
-<style>
-/* Add custom styles here for consistency */
-.document-item {
-    @apply bg-[#2a3056] p-4 rounded-xl flex items-center space-x-4 transition-all hover:bg-purple-600/20 cursor-pointer;
-}
-
-.document-progress {
-    @apply bg-gray-800 rounded-full h-2 w-32 overflow-hidden;
-}
-
-.progress-bar {
-    @apply bg-purple-500 h-full transition-all duration-300;
-}
-
-.status-badge {
-    @apply px-2 py-1 rounded-full text-xs font-medium;
-}
-
-.status-uploading { @apply bg-cyan-500/20 text-cyan-400; }
-.status-processed { @apply bg-green-500/20 text-green-400; }
-.status-failed { @apply bg-red-500/20 text-red-400; }
-
-.dragover {
-    @apply border-cyan-500 bg-purple-900/20;
-}
-
-/* Add these new styles */
-.btn-primary {
-    @apply px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-lg
-           hover:shadow-lg hover:shadow-indigo-500/20 transition-all text-sm font-medium;
-}
-
-.btn-secondary {
-    @apply px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg
-           hover:bg-gray-800 transition-all text-sm font-medium;
-}
-
-.btn-icon {
-    @apply p-2 hover:bg-gray-800/50 rounded-lg text-gray-400 hover:text-white transition-all;
-}
-
-.suggestion-chip {
-    @apply px-3 py-1 bg-gray-800/50 border border-gray-700 rounded-full text-sm
-           hover:bg-gray-800 hover:border-indigo-500 transition-all;
-}
-
-.chat-message {
-    @apply flex items-start space-x-4;
-}
-
-.message-avatar {
-    @apply w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white;
-}
-
-.message-content {
-    @apply flex-1 bg-gray-800/50 rounded-xl p-4;
-}
-
-.message-sender {
-    @apply text-sm font-medium text-indigo-400 mb-1;
-}
-
-.bot-message .message-content {
-    @apply bg-gray-800/50;
-}
-
-.user-message {
-    @apply flex-row-reverse space-x-reverse;
-}
-
-.user-message .message-content {
-    @apply bg-indigo-600/30;
-}
-
-.user-message .message-avatar {
-    @apply bg-violet-600;
-}
-
-/* ... existing styles ... */
-</style>
 {% endblock %}
