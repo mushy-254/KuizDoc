@@ -1,78 +1,265 @@
-{% extends 'base.html' %}
-
-{% block content %}
-<div class="max-w-md mx-auto my-12 bg-gray-800 p-8 rounded-xl">
-    <h2 class="text-3xl font-bold mb-8 text-center">
-        <i class="fas fa-user-plus mr-2 text-indigo-400"></i>
-        Get Started
-    </h2>
-    
-    <form method="post" class="space-y-6" onsubmit="return validateForm()">
-        {% csrf_token %}
-        
-        <div>
-            <label class="block text-sm font-medium mb-2">Username</label>
-            <input type="text" name="username" required
-                   class="w-full bg-gray-700 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500">
-        </div>
-        
-        <div>
-            <label class="block text-sm font-medium mb-2">Email</label>
-            <input type="email" name="email" required
-                   class="w-full bg-gray-700 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500">
-        </div>
-
-        <div>
-            <label class="block text-sm font-medium mb-2">Password</label>
-            <input type="password" id="password1" name="password1" required
-                   class="w-full bg-gray-700 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500">
-            <small class="text-red-400 hidden" id="password-error">
-                Password must be at least 8 characters, include uppercase, lowercase, numbers, and symbols.
-            </small>
-        </div>
-
-        <div>
-            <label class="block text-sm font-medium mb-2">Confirm Password</label>
-            <input type="password" id="password2" name="password2" required
-                   class="w-full bg-gray-700 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500">
-            <small class="text-red-400 hidden" id="confirm-error">
-                Passwords do not match.
-            </small>
-        </div>
-
-        <button type="submit" class="btn-primary w-full">
-            Create Account
-        </button>
-    </form>
-</div>
-
-<script>
-    function validateForm() {
-        let password1 = document.getElementById("password1").value;
-        let password2 = document.getElementById("password2").value;
-        let passwordError = document.getElementById("password-error");
-        let confirmError = document.getElementById("confirm-error");
-
-        let strongPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-
-        // Reset error messages
-        passwordError.classList.add("hidden");
-        confirmError.classList.add("hidden");
-
-        // Check password strength
-        if (!strongPassword.test(password1)) {
-            passwordError.classList.remove("hidden");
-            return false;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Create an Account</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Base styles */
+        :root {
+            --color-bg: #111827;
+            --color-card: #1f2937;
+            --color-text: #f3f4f6;
+            --color-text-secondary: #9ca3af;
+            --color-primary: #6366f1;
+            --color-primary-hover: #4f46e5;
+            --color-input: #374151;
+            --color-error: #ef4444;
         }
-
-        // Check password match
-        if (password1 !== password2) {
-            confirmError.classList.remove("hidden");
-            return false;
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
         }
+        
+        /* Card styles */
+        .max-w-md {
+            max-width: 28rem;
+            width: 100%;
+        }
+        
+        .mx-auto {
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .my-12 {
+            margin-top: 3rem;
+            margin-bottom: 3rem;
+        }
+        
+        .bg-gray-800 {
+            background-color: var(--color-card);
+        }
+        
+        .p-8 {
+            padding: 2rem;
+        }
+        
+        .rounded-xl {
+            border-radius: 0.75rem;
+        }
+        
+        /* Text styles */
+        .text-3xl {
+            font-size: 1.875rem;
+        }
+        
+        .font-bold {
+            font-weight: 700;
+        }
+        
+        .mb-8 {
+            margin-bottom: 2rem;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .mr-2 {
+            margin-right: 0.5rem;
+        }
+        
+        .text-indigo-400 {
+            color: var(--color-primary);
+        }
+        
+        /* Form styles */
+        .space-y-6 > * + * {
+            margin-top: 1.5rem;
+        }
+        
+        .block {
+            display: block;
+        }
+        
+        .text-sm {
+            font-size: 0.875rem;
+        }
+        
+        .font-medium {
+            font-weight: 500;
+        }
+        
+        .mb-2 {
+            margin-bottom: 0.5rem;
+        }
+        
+        .w-full {
+            width: 100%;
+        }
+        
+        .bg-gray-700 {
+            background-color: var(--color-input);
+        }
+        
+        .rounded-lg {
+            border-radius: 0.5rem;
+        }
+        
+        .px-4 {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        
+        .py-3 {
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+        }
+        
+        input {
+            outline: none;
+            border: 1px solid var(--color-input);
+            color: var(--color-text);
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        
+        input:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+        
+        .btn-primary {
+            background-color: var(--color-primary);
+            color: white;
+            font-weight: 500;
+            border: none;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.15s ease-in-out;
+            font-size: 1rem;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--color-primary-hover);
+        }
+        
+        /* Error messages */
+        .text-red-400 {
+            color: var(--color-error);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        /* Link styles */
+        .text-center a {
+            color: var(--color-primary);
+            text-decoration: none;
+        }
+        
+        .text-center a:hover {
+            text-decoration: underline;
+        }
+        
+        .mt-4 {
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="max-w-md mx-auto my-12 bg-gray-800 p-8 rounded-xl">
+        <h2 class="text-3xl font-bold mb-8 text-center">
+            <i class="fas fa-user-plus mr-2 text-indigo-400"></i>
+            Get Started
+        </h2>
+        
+        <form method="post" class="space-y-6" onsubmit="return validateForm()">
+            <!-- Replace with your actual CSRF token implementation -->
+            <input type="hidden" name="csrf_token" value="your_csrf_token_here">
+            
+            <div>
+                <label class="block text-sm font-medium mb-2">Username</label>
+                <input type="text" name="username" required
+                       class="w-full bg-gray-700 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium mb-2">Email</label>
+                <input type="email" name="email" required
+                       class="w-full bg-gray-700 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500">
+            </div>
 
-        return true; // Form submits if no errors
-    }
-</script>
+            <div>
+                <label class="block text-sm font-medium mb-2">Password</label>
+                <input type="password" id="password1" name="password1" required
+                       class="w-full bg-gray-700 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500">
+                <small class="text-red-400 hidden" id="password-error">
+                    Password must be at least 8 characters, include uppercase, lowercase, numbers, and symbols.
+                </small>
+            </div>
 
-{% endblock %}
+            <div>
+                <label class="block text-sm font-medium mb-2">Confirm Password</label>
+                <input type="password" id="password2" name="password2" required
+                       class="w-full bg-gray-700 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500">
+                <small class="text-red-400 hidden" id="confirm-error">
+                    Passwords do not match.
+                </small>
+            </div>
+
+            <button type="submit" class="btn-primary w-full">
+                Create Account
+            </button>
+        </form>
+        
+        <div class="text-center mt-4">
+            <p>Already have an account? <a href="{% url 'login' %}"">Log in</a></p>
+        </div>
+    </div>
+
+    <script>
+        function validateForm() {
+            let password1 = document.getElementById("password1").value;
+            let password2 = document.getElementById("password2").value;
+            let passwordError = document.getElementById("password-error");
+            let confirmError = document.getElementById("confirm-error");
+
+            let strongPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+            // Reset error messages
+            passwordError.classList.add("hidden");
+            confirmError.classList.add("hidden");
+
+            // Check password strength
+            if (!strongPassword.test(password1)) {
+                passwordError.classList.remove("hidden");
+                return false;
+            }
+
+            // Check password match
+            if (password1 !== password2) {
+                confirmError.classList.remove("hidden");
+                return false;
+            }
+
+            return true; // Form submits if no errors
+        }
+    </script>
+</body>
+</html>
