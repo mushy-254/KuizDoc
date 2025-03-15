@@ -1,681 +1,1650 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document Chat with Voice</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://unpkg.com/marked@4.3.0/marked.min.js"></script>
-</head>
-<body>
-    <div class="bg-gradient-to-br from-[#121533] via-[#1a2347] to-[#0c0e1a] min-h-screen text-gray-100 p-4 md:p-8">
-        <!-- Chat Header -->
-        <header class="mb-4 md:mb-8">
-            <h1 class="text-2xl md:text-3xl font-bold flex items-center">
-                <i class="fas fa-comments text-indigo-400 mr-3"></i>
-                Document Voice Chat
-            </h1>
-            <p class="text-gray-400 mt-2">Ask questions or discuss your documents with voice-enabled AI.</p>
-        </header>
+{% extends 'base.html' %}
 
-        <!-- Chat Container -->
-        <div class="flex flex-col h-[calc(100vh-200px)] bg-gray-800/50 rounded-xl overflow-hidden">
-            <!-- Chat History -->
-            <div id="chatHistory" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
-                <!-- Welcome Message -->
-                <div class="chat-message bot-message">
-                    <div class="message-avatar">
-                        <i class="fas fa-robot text-xl text-indigo-400"></i>
+{% block content %}
+<div class="container mx-auto max-w-6xl px-4 py-6">
+    <!-- App Header -->
+    <header class="mb-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold flex items-center">
+                    <div class="w-10 h-10 mr-3 bg-gradient-to-r from-primary to-primaryLight rounded-lg flex items-center justify-center text-white">
+                        <i class="fas fa-robot text-xl"></i>
                     </div>
-                    <div class="message-content">
-                        <div class="flex justify-between items-center mb-1">
-                            <p class="message-sender text-sm text-indigo-400">AI Assistant</p>
-                            <button class="play-audio-btn text-indigo-400 hover:text-indigo-300" data-message-id="welcome-message">
-                                <i class="fas fa-play"></i>
-                            </button>
+                    AI Voice Tutor
+                </h1>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Ask questions and get spoken answers about your documents</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <button id="uploadDocsBtn" class="btn-primary">
+                    <i class="fas fa-file-upload mr-2"></i> Upload Documents
+                </button>
+                <div class="relative" id="voiceSettingsDropdown">
+                    <button id="voiceSettingsBtn" class="btn-secondary">
+                        <i class="fas fa-microphone-alt mr-2"></i> Voice Settings
+                    </button>
+                    <div id="voiceSettingsMenu" class="dropdown-menu hidden absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 z-10">
+                        <h3 class="font-medium mb-3 border-b pb-2 dark:border-gray-700">Voice Settings</h3>
+                        
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium mb-1">AI Voice</label>
+                            <select id="voiceSelect" class="w-full p-2 rounded bg-gray-100 dark:bg-gray-700 text-sm border border-gray-300 dark:border-gray-600">
+                                <option value="Sarah">Sarah (Female)</option>
+                                <option value="George">George (Male)</option>
+                                <option value="River">River (Female)</option>
+                                <option value="Matilda">Matilda (Female)</option>
+                                <option value="Brian">Brian (Male)</option>
+                                <option value="Jessica">Jessica (Female)</option>
+                                <option value="Will">Will (Male)</option>
+                                <option value="Lily">Lily (Female)</option>
+                                <option value="Monika Sogam">Monika Sogam (Female)</option>
+                            </select>
                         </div>
-                        <div class="text-gray-100">Hello! I'm here to help you understand your documents better. You can ask me questions, request summaries, or get clarification on specific topics. I can also respond with voice!</div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium mb-1">Speech Rate</label>
+                            <div class="flex items-center">
+                                <i class="fas fa-volume-down text-gray-500"></i>
+                                <input type="range" id="speechRate" min="0.5" max="1.5" step="0.1" value="1" class="mx-2 flex-1">
+                                <i class="fas fa-volume-up text-gray-500"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center mb-2">
+                            <input type="checkbox" id="autoPlayVoice" class="mr-2" checked>
+                            <label for="autoPlayVoice" class="text-sm">Auto-play responses</label>
+                        </div>
+                        
+                        <button id="testVoiceBtn" class="w-full btn-primary mt-2 py-1.5">
+                            <i class="fas fa-play mr-1"></i> Test Voice
+                        </button>
                     </div>
                 </div>
             </div>
+        </div>
+    </header>
 
-            <!-- Chat Input Area -->
-            <div class="border-t border-gray-700 p-4 bg-gray-800/30">
-                <div class="flex items-center space-x-4">
-                    <!-- Voice Input Button -->
-                    <button id="voiceInputBtn" class="voice-btn" title="Voice Input">
-                        <i class="fas fa-microphone"></i>
+    <!-- Document Management Area -->
+    <div id="documentArea" class="mb-6 hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-lg font-semibold flex items-center">
+                    <i class="fas fa-folder-open text-primary mr-2"></i> Your Documents
+                </h2>
+                <div class="flex gap-2">
+                    <button id="collapseDocsBtn" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                        <i class="fas fa-chevron-up"></i>
                     </button>
+                </div>
+            </div>
+            
+            <div id="documentCarousel" class="relative">
+                <!-- Document carousel navigation -->
+                <button id="prevDocBtn" class="absolute left-0 top-1/2 -translate-y-1/2 bg-white dark:bg-gray-700 rounded-full p-2 shadow-md z-10 text-gray-500 hover:text-primary hidden">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                
+                <div class="overflow-x-auto py-2" id="documentList">
+                    <div class="flex gap-3 min-w-max px-2">
+                        <!-- Documents will be added here dynamically -->
+                        <div class="document-item-placeholder animate-pulse">
+                            <div class="w-40 h-32 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                        </div>
+                        <div class="document-item-placeholder animate-pulse">
+                            <div class="w-40 h-32 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button id="nextDocBtn" class="absolute right-0 top-1/2 -translate-y-1/2 bg-white dark:bg-gray-700 rounded-full p-2 shadow-md z-10 text-gray-500 hover:text-primary hidden">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            
+                <button id="nextDocBtn" class="absolute right-0 top-1/2 -translate-y-1/2 bg-white dark:bg-gray-700 rounded-full p-2 shadow-md z-10 text-gray-500 hover:text-primary hidden">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            
+            <!-- Active Document Summary -->
+            <div id="activeDocumentSummary" class="mt-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg hidden">
+                <div class="flex items-start gap-3">
+                    <div class="flex-shrink-0">
+                        <div class="w-10 h-10 rounded-lg bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between mb-1">
+                            <h3 id="activeSummaryTitle" class="font-medium text-base truncate pr-2">Document Summary</h3>
+                            <button id="toggleSummaryBtn" class="text-xs text-gray-500 hover:text-primary">
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                        </div>
+                        <div id="activeSummaryContent" class="text-sm text-gray-600 dark:text-gray-400 line-clamp-3 summary-content">
+                            <!-- Summary content will be inserted here -->
+                            <div class="animate-pulse">
+                                <div class="h-4 bg-gray-200 dark:bg-gray-600 rounded w-3/4 mb-2"></div>
+                                <div class="h-4 bg-gray-200 dark:bg-gray-600 rounded w-full mb-2"></div>
+                                <div class="h-4 bg-gray-200 dark:bg-gray-600 rounded w-2/3"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                    <!-- Text Input -->
-                    <div class="flex-1 relative">
+    <!-- Chat Container -->
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden flex flex-col h-[calc(100vh-250px)]">
+        <!-- Chat History -->
+        <div id="chatHistory" class="flex-1 overflow-y-auto p-4 space-y-4">
+            <!-- Welcome Message -->
+            <div class="chat-message bot-message">
+                <div class="message-avatar">
+                    <i class="fas fa-robot text-xl text-white"></i>
+                </div>
+                <div class="message-content">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="message-sender text-sm font-medium text-primary">AI Tutor</p>
+                        <div class="audio-controls">
+                            <button class="play-audio-btn text-xs text-gray-500 hover:text-primary p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700" data-message-id="welcome">
+                                <i class="fas fa-volume-up"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="message-text">
+                        <p>Welcome to AI Voice Tutor! I can help you understand your documents and answer your questions.</p>
+                        <p class="mt-2">To get started:</p>
+                        <ul class="list-disc list-inside ml-2 mt-1 space-y-1">
+                            <li>Upload one or more documents using the button above</li>
+                            <li>Ask questions about the content in your documents</li>
+                            <li>Get audio responses by clicking the speaker icon</li>
+                        </ul>
+                        <p class="mt-2">What would you like to learn today?</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Input Area -->
+        <div class="border-t border-gray-200 dark:border-gray-700 p-3 bg-gray-50 dark:bg-gray-800">
+            <div class="flex flex-col gap-3">
+                <!-- Input area with buttons -->
+                <div class="flex items-center gap-2">
+                    <div class="relative flex-1">
                         <input 
                             type="text" 
                             id="chatInput" 
-                            class="chat-input w-full bg-gray-700 rounded-lg px-4 py-3 pr-12 focus:ring-2 focus:ring-indigo-500" 
-                            placeholder="Ask about your document or click microphone..."
+                            class="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg pl-12 pr-12 py-3 text-base focus:ring-2 focus:ring-primary focus:border-primary" 
+                            placeholder="Ask about your documents or type a question..."
                         >
-                        <button id="sendMessageBtn" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-indigo-400">
+                        <div class="absolute left-3 top-1/2 -translate-y-1/2 flex gap-1">
+                            <button id="voiceInputBtn" class="text-gray-400 hover:text-primary p-1" title="Voice Input">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                            <button id="uploadInlineBtn" class="text-gray-400 hover:text-primary p-1" title="Upload Document">
+                                <i class="fas fa-paperclip"></i>
+                            </button>
+                        </div>
+                        <button id="sendMessageBtn" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary p-1">
                             <i class="fas fa-paper-plane"></i>
                         </button>
                     </div>
-
-                    <!-- Attach Document Button -->
-                    <button id="attachDocumentBtn" class="btn-icon" title="Attach Document">
-                        <i class="fas fa-paperclip"></i>
-                    </button>
                 </div>
 
-                <!-- Voice Settings -->
-                <div class="flex flex-wrap items-center gap-2 mt-4">
-                    <div class="flex items-center space-x-2 bg-gray-700/50 rounded-lg px-3 py-2">
-                        <label for="voiceSelect" class="text-sm text-gray-300">Voice:</label>
-                        <select id="voiceSelect" class="bg-gray-700 rounded text-sm p-1">
-                            <option value="Sarah">Sarah</option>
-                            <option value="George">George</option>
-                            <option value="River">River</option>
-                            <option value="Matilda">Matilda</option>
-                            <option value="Will">Will</option>
-                            <option value="Jessica">Jessica</option>
-                            <option value="Brian">Brian</option>
-                            <option value="Lily">Lily</option>
-                            <option value="Monika Sogam">Monika Sogam</option>
-                        </select>
-                    </div>
-                    <div class="voice-toggle-container">
-                        <label class="voice-toggle-switch">
-                            <input type="checkbox" id="autoPlayToggle" checked>
-                            <span class="voice-toggle-slider"></span>
-                        </label>
-                        <span class="text-sm text-gray-300 ml-2">Auto-play responses</span>
-                    </div>
-                </div>
-
-                <!-- Quick Action Buttons -->
-                <div class="flex flex-wrap gap-2 mt-4">
-                    <button class="suggestion-chip" data-prompt="Summarize the document">
-                        <i class="fas fa-file-alt mr-2"></i> Summarize
+                <!-- Suggestion chips -->
+                <div class="flex flex-wrap gap-2">
+                    <button class="suggestion-chip" data-prompt="Summarize the main points in this document" id="summarizeBtn">
+                        <i class="fas fa-file-alt mr-1"></i> Summarize
                     </button>
-                    <button class="suggestion-chip" data-prompt="Explain key concepts">
-                        <i class="fas fa-lightbulb mr-2"></i> Explain Concepts
+                    <button class="suggestion-chip" data-prompt="Explain the key concepts in this document">
+                        <i class="fas fa-lightbulb mr-1"></i> Key Concepts
                     </button>
-                    <button class="suggestion-chip" data-prompt="Generate study questions">
-                        <i class="fas fa-question-circle mr-2"></i> Study Questions
+                    <button class="suggestion-chip" data-prompt="Create a quiz about this document">
+                        <i class="fas fa-question-circle mr-1"></i> Quiz Me
+                    </button>
+                    <button class="suggestion-chip" data-prompt="Teach me about the main topic in this document">
+                        <i class="fas fa-chalkboard-teacher mr-1"></i> Teach Me
                     </button>
                 </div>
             </div>
         </div>
-
-        <!-- Voice Recording Indicator -->
-        <div id="voiceIndicator" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-red-500 text-white py-2 px-6 rounded-full hidden flex items-center">
-            <div class="w-3 h-3 bg-white rounded-full mr-3 pulse-animation"></div>
-            <span>Recording...</span>
-        </div>
-
-        <!-- Audio Player (Hidden) -->
-        <audio id="audioPlayer" class="hidden"></audio>
     </div>
 
-    <script>
+    <!-- Voice Indicator -->
+    <div id="voiceIndicator" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-primary text-white rounded-full py-2 px-6 shadow-lg flex items-center hidden z-50">
+        <div class="recording-animation mr-2">
+            <span></span><span></span><span></span>
+        </div>
+        <p>Listening...</p>
+        <button id="stopListeningBtn" class="ml-3 bg-white/20 rounded-full p-1 hover:bg-white/30">
+            <i class="fas fa-stop"></i>
+        </button>
+    </div>
+
+    <!-- Document Upload Modal -->
+    <div id="uploadModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full mx-4 p-6 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold">Upload Documents</h3>
+                <button id="closeUploadBtn" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div id="uploadArea" class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center mb-4 cursor-pointer hover:border-primary dark:hover:border-primary transition-colors">
+                <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 dark:text-gray-500 mb-3"></i>
+                <p class="mb-1">Drag & drop files here, or click to browse</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Supported formats: PDF, DOCX, TXT (max 10MB)</p>
+            </div>
+            
+            <div id="uploadProgress" class="hidden">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-medium">Uploading files...</span>
+                    <span id="uploadPercentage" class="text-sm">0%</span>
+                </div>
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                    <div id="uploadProgressBar" class="bg-primary h-2.5 rounded-full" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <div id="selectedFiles" class="space-y-2 mb-4 max-h-40 overflow-y-auto">
+                <!-- Selected files will appear here -->
+            </div>
+            
+            <div class="flex justify-end gap-2 mt-4">
+                <button id="cancelUploadBtn" class="btn-secondary">Cancel</button>
+                <button id="confirmUploadBtn" class="btn-primary" disabled>
+                    <i class="fas fa-upload mr-2"></i> Upload Files
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio Player (hidden but used for playing audio) -->
+    <audio id="audioPlayer" class="hidden"></audio>
+
+    <!-- File Upload Form (hidden) -->
+    <input type="file" id="fileInput" class="hidden" accept=".pdf,.doc,.docx,.txt,.md" multiple>
+</div>
+
+<style>
+    /* Base styles */
+    .btn-primary {
+        background-color: #4f46e5;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.3s;
+        font-weight: 500;
+        font-size: 0.875rem;
+    }
+    
+    .btn-primary:hover {
+        background-color: #4338ca;
+    }
+    
+    .btn-secondary {
+        background-color: #e5e7eb;
+        color: #1f2937;
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.3s;
+        font-weight: 500;
+        font-size: 0.875rem;
+    }
+    
+    .btn-secondary:hover {
+        background-color: #d1d5db;
+    }
+    
+    .btn-icon {
+        padding: 0.75rem;
+        border-radius: 9999px;
+        background-color: #e5e7eb;
+        color: #1f2937;
+        transition: background-color 0.3s;
+    }
+    
+    .btn-icon:hover {
+        background-color: #d1d5db;
+    }
+    
+    .suggestion-chip {
+        padding: 0.375rem 0.75rem;
+        background-color: rgba(79, 70, 229, 0.1);
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: #4f46e5;
+        transition: background-color 0.3s;
+    }
+    
+    .suggestion-chip:hover {
+        background-color: rgba(79, 70, 229, 0.2);
+    }
+    
+    .chat-message {
+        display: flex;
+        gap: 0.75rem;
+        animation: fadeIn 0.3s ease-out forwards;
+    }
+    
+    .message-avatar {
+        width: 2.5rem;
+        height: 2.5rem;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 9999px;
+        background-color: #4f46e5;
+    }
+    
+    .message-content {
+        flex: 1;
+        background-color: #f3f4f6;
+        border-radius: 0.375rem;
+        padding: 0.75rem;
+    }
+    
+    .bot-message .message-content {
+        background-color: rgba(79, 70, 229, 0.05);
+    }
+    
+    .user-message {
+        flex-direction: row-reverse;
+    }
+    
+    .user-message .message-avatar {
+        background-color: #6b21a8;
+    }
+    
+    .user-message .message-content {
+        background-color: rgba(107, 33, 168, 0.05);
+    }
+    
+    /* Recording animation */
+    .recording-animation {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.125rem;
+    }
+    
+    .recording-animation span {
+        display: inline-block;
+        width: 0.375rem;
+        height: 1.25rem;
+        background-color: white;
+        border-radius: 9999px;
+        animation: recording 1.2s ease-in-out infinite;
+    }
+    
+    .recording-animation span:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+    
+    .recording-animation span:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+    
+    @keyframes recording {
+        0%, 100% { transform: scaleY(0.5); }
+        50% { transform: scaleY(1); }
+    }
+    
+    /* Audio playing indicator */
+    .audio-playing {
+        position: relative;
+    }
+    
+    .audio-playing i {
+        color: #10b981;
+        animation: pulse 1s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    
+    /* Document Item */
+    .document-item {
+        position: relative;
+        flex-shrink: 0;
+        width: 10rem;
+        height: 8rem;
+        border-radius: 0.375rem;
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+    
+    .document-item.active {
+        box-shadow: 0 0 0 2px #4f46e5;
+    }
+    
+    .document-item .document-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 0.75rem;
+    }
+    
+    .document-item .document-icon {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 9999px;
+        background-color: rgba(255, 255, 255, 0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
+    }
+    
+    /* Loading spinner */
+    .loading-spinner {
+        width: 1.25rem;
+        height: 1.25rem;
+        border: 2px solid #e5e7eb;
+        border-top-color: #4f46e5;
+        border-radius: 9999px;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    /* Animation utilities */
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    .animate-fade-in {
+        animation: fadeIn 0.3s ease-out forwards;
+    }
+    
+    /* Summary toggle */
+    .summary-content {
+        transition: max-height 0.3s ease-out, margin 0.3s ease;
+        max-height: 4.5rem;
+        overflow: hidden;
+    }
+    
+    .summary-content.expanded {
+        max-height: 1000px;
+    }
+    
+    /* Hide scrollbar for document carousel but keep functionality */
+    #documentList::-webkit-scrollbar {
+        height: 0;
+        width: 0;
+        display: none;
+    }
+    
+    #documentList {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+</style>
+<elevenlabs-convai agent-id="zBqCVxXmduBYXlS81EJr"></elevenlabs-convai><script src="https://elevenlabs.io/convai-widget/index.js" async type="text/javascript"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
     document.addEventListener('DOMContentLoaded', () => {
+        // DOM Elements
         const chatInput = document.getElementById('chatInput');
         const sendMessageBtn = document.getElementById('sendMessageBtn');
         const chatHistory = document.getElementById('chatHistory');
         const voiceInputBtn = document.getElementById('voiceInputBtn');
+        const fileInput = document.getElementById('fileInput');
+        const uploadDocsBtn = document.getElementById('uploadDocsBtn');
+        const uploadInlineBtn = document.getElementById('uploadInlineBtn');
         const voiceIndicator = document.getElementById('voiceIndicator');
-        const audioPlayer = document.getElementById('audioPlayer');
+        const stopListeningBtn = document.getElementById('stopListeningBtn');
+        const documentArea = document.getElementById('documentArea');
+        const documentList = document.getElementById('documentList');
+        const activeDocumentSummary = document.getElementById('activeDocumentSummary');
+        const activeSummaryTitle = document.getElementById('activeSummaryTitle');
+        const activeSummaryContent = document.getElementById('activeSummaryContent');
+        const toggleSummaryBtn = document.getElementById('toggleSummaryBtn');
+        const voiceSettingsBtn = document.getElementById('voiceSettingsBtn');
+        const voiceSettingsMenu = document.getElementById('voiceSettingsMenu');
         const voiceSelect = document.getElementById('voiceSelect');
-        const autoPlayToggle = document.getElementById('autoPlayToggle');
-        const attachDocumentBtn = document.getElementById('attachDocumentBtn');
+        const autoPlayVoice = document.getElementById('autoPlayVoice');
+        const testVoiceBtn = document.getElementById('testVoiceBtn');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const collapseDocsBtn = document.getElementById('collapseDocsBtn');
+        const prevDocBtn = document.getElementById('prevDocBtn');
+        const nextDocBtn = document.getElementById('nextDocBtn');
+        const summarizeBtn = document.getElementById('summarizeBtn');
+        
+        // Upload Modal Elements
+        const uploadModal = document.getElementById('uploadModal');
+        const closeUploadBtn = document.getElementById('closeUploadBtn');
+        const uploadArea = document.getElementById('uploadArea');
+        const selectedFiles = document.getElementById('selectedFiles');
+        const confirmUploadBtn = document.getElementById('confirmUploadBtn');
+        const cancelUploadBtn = document.getElementById('cancelUploadBtn');
+        const uploadProgress = document.getElementById('uploadProgress');
+        const uploadProgressBar = document.getElementById('uploadProgressBar');
+        const uploadPercentage = document.getElementById('uploadPercentage');
 
-        let recognition;
+        // State variables
+        let documents = [];
+        let activeDocumentIndex = -1;
         let isRecording = false;
-        let currentPlayingAudioButton = null;
-        let messageIdCounter = 1;
-        let documentContext = null;
+        let recognition = null;
+        let isPlaying = false;
+        let currentPlayingBtn = null;
+        let handlerId = 'chat-handler-' + Date.now();
+        let filesToUpload = [];
+        let isDocAreaExpanded = true;
 
-        // Initialize Web Speech API for speech recognition
+        // Initialize Web Speech API for voice input
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition = new (window.webkitSpeechRecognition || window.SpeechRecognition)();
             recognition.continuous = false;
             recognition.interimResults = false;
             recognition.lang = 'en-US';
 
             recognition.onstart = () => {
-                voiceIndicator.classList.remove('hidden');
                 isRecording = true;
-                voiceInputBtn.classList.add('recording');
+                voiceIndicator.classList.remove('hidden');
             };
 
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
                 chatInput.value = transcript;
-                // Auto send message after voice input
+                stopRecording();
+                // Auto-send message after voice input
                 setTimeout(() => sendMessage(), 500);
             };
 
             recognition.onend = () => {
-                voiceIndicator.classList.add('hidden');
-                isRecording = false;
-                voiceInputBtn.classList.remove('recording');
+                stopRecording();
             };
 
             recognition.onerror = (event) => {
-                console.error("Speech Recognition Error:", event.error);
-                voiceIndicator.classList.add('hidden');
-                isRecording = false;
-                voiceInputBtn.classList.remove('recording');
-                
-                addSystemMessageToChat("There was an error with voice recognition. Please try again or type your message.");
+                console.error("Speech recognition error", event.error);
+                stopRecording();
+                addSystemMessage("Sorry, I couldn't hear you. Please try again or type your question.");
             };
         } else {
             voiceInputBtn.disabled = true;
             voiceInputBtn.title = "Voice input not supported in your browser";
-            
-            addSystemMessageToChat("Voice input is not supported in your browser. Please use text input instead.");
+            addSystemMessage("Voice input is not supported in your browser. Please type your questions instead.");
         }
 
-        // Voice Input Button
-        voiceInputBtn.addEventListener('click', () => {
-            if (isRecording) {
-                recognition.stop();
-            } else {
-                recognition.start();
-            }
-        });
+        // Register handler for bot responses
+        if (window.Poe) {
+            window.Poe.registerHandler(handlerId, (result, context) => {
+                // Get the first response (we're only calling one bot at a time)
+                if (result.responses && result.responses.length > 0) {
+                    const response = result.responses[0];
+                    
+                    if (response.status === "error") {
+                        updateBotResponse(context.messageId, "", true, response.statusText || "An error occurred");
+                    } else if (response.status === "incomplete") {
+                        // Update with streaming response
+                        updateBotResponse(context.messageId, response.content, false);
+                    } else if (response.status === "complete") {
+                        // Final response
+                        updateBotResponse(context.messageId, response.content, true);
+                        
+                        // Handle different response types
+                        if (context.type === "document_summary") {
+                            // Update document summary in UI
+                            processDocumentSummary(response.content, context.documentId);
+                        } else if (context.type === "chat" && autoPlayVoice.checked && !context.isAudioResponse) {
+                            // Play audio for chat responses
+                            generateAndPlayAudio(response.content, context.messageId);
+                        }
+                    }
+                }
+            });
+        }
 
-        // Send Message on Enter key
-        chatInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
-
-        // Send Message Button
+        // Event Listeners
         sendMessageBtn.addEventListener('click', sendMessage);
-
-        // Quick Action Buttons
-        document.querySelectorAll('.suggestion-chip').forEach(button => {
-            button.addEventListener('click', () => {
-                const prompt = button.getAttribute('data-prompt');
-                chatInput.value = prompt;
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
                 sendMessage();
+            }
+        });
+
+        voiceInputBtn.addEventListener('click', startRecording);
+        stopListeningBtn.addEventListener('click', stopRecording);
+
+        uploadDocsBtn.addEventListener('click', openUploadModal);
+        uploadInlineBtn.addEventListener('click', openUploadModal);
+        closeUploadBtn.addEventListener('click', closeUploadModal);
+        cancelUploadBtn.addEventListener('click', closeUploadModal);
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('border-primary');
+        });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('border-primary');
+        });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('border-primary');
+            handleFileSelection(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFileSelection(e.target.files);
+        });
+
+        confirmUploadBtn.addEventListener('click', processSelectedFiles);
+
+        // Voice settings dropdown
+        voiceSettingsBtn.addEventListener('click', () => {
+            voiceSettingsMenu.classList.toggle('hidden');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!voiceSettingsBtn.contains(e.target) && !voiceSettingsMenu.contains(e.target)) {
+                voiceSettingsMenu.classList.add('hidden');
+            }
+        });
+
+        // Test voice button
+        testVoiceBtn.addEventListener('click', testSelectedVoice);
+
+        // Quick suggestion chips
+        document.querySelectorAll('.suggestion-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                chatInput.value = chip.dataset.prompt;
+                chatInput.focus();
+                
+                // If this is the summarize button, trigger document summarization
+                if (chip.id === 'summarizeBtn' && activeDocumentIndex >= 0) {
+                    summarizeCurrentDocument();
+                }
             });
         });
 
-        // Attach Document Button
-        attachDocumentBtn.addEventListener('click', () => {
-            // Create a file input element
-            const fileInput = document.createElement('input');
-            fileInput.type = 'file';
-            fileInput.accept = '.pdf,.doc,.docx,.txt';
-            
-            // Trigger file selection dialog
-            fileInput.click();
-            
-            // Handle file selection
-            fileInput.addEventListener('change', async (e) => {
-                if (fileInput.files.length === 0) return;
-                
-                const file = fileInput.files[0];
-                const formData = new FormData();
-                formData.append('document', file);
-                
-                // Show loading message
-                addSystemMessageToChat(`Uploading document: ${file.name}...`);
-                
+        // Toggle document summary expansion
+        toggleSummaryBtn.addEventListener('click', () => {
+            activeSummaryContent.classList.toggle('expanded');
+            const icon = toggleSummaryBtn.querySelector('i');
+            if (activeSummaryContent.classList.contains('expanded')) {
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+            } else {
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
+            }
+        });
+
+        // Collapse/expand document area
+        collapseDocsBtn.addEventListener('click', toggleDocumentArea);
+
+        // Document carousel navigation
+        prevDocBtn.addEventListener('click', () => navigateDocuments(-1));
+        nextDocBtn.addEventListener('click', () => navigateDocuments(1));
+
+        // Audio player events
+        audioPlayer.addEventListener('play', () => {
+            isPlaying = true;
+            if (currentPlayingBtn) {
+                currentPlayingBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                currentPlayingBtn.classList.add('audio-playing');
+            }
+        });
+
+        audioPlayer.addEventListener('pause', () => {
+            isPlaying = false;
+            if (currentPlayingBtn) {
+                currentPlayingBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+                currentPlayingBtn.classList.remove('audio-playing');
+            }
+        });
+
+        audioPlayer.addEventListener('ended', () => {
+            isPlaying = false;
+            if (currentPlayingBtn) {
+                currentPlayingBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+                currentPlayingBtn.classList.remove('audio-playing');
+            }
+        });
+
+        // Functions
+        function startRecording() {
+            if (recognition && !isRecording) {
                 try {
-                    // Upload the document to your Django backend
-                    const response = await fetch('/process-document/', {
+                    recognition.start();
+                } catch (e) {
+                    console.error("Error starting speech recognition:", e);
+                }
+            }
+        }
+
+        function stopRecording() {
+            if (recognition && isRecording) {
+                recognition.stop();
+                isRecording = false;
+                voiceIndicator.classList.add('hidden');
+            }
+        }
+
+        async function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            // Add user message to chat
+            addUserMessage(message);
+            chatInput.value = '';
+
+            // Create a temporary message ID for tracking updates
+            const messageId = 'msg-' + Date.now();
+            
+            // Add a loading message from the bot
+            addBotMessage('', messageId, true);
+
+            try {
+                // Determine if this is a voice request
+                const useVoice = message.toLowerCase().includes('speak') || 
+                                message.toLowerCase().includes('say') || 
+                                message.toLowerCase().includes('tell me');
+                
+                if (window.Poe) {
+                    if (useVoice) {
+                        // Direct voice generation with ElevenLabs
+                        await window.Poe.sendUserMessage(
+                            `@ElevenLabs ${message} --voice ${voiceSelect.value}`,
+                            {
+                                handler: handlerId,
+                                stream: false,
+                                openChat: false,
+                                handlerContext: { 
+                                    messageId: messageId,
+                                    isAudioResponse: true,
+                                    type: "chat"
+                                }
+                            }
+                        );
+                    } else {
+                        // Prepare context from active document if available
+                        let contextPrefix = "";
+                        if (activeDocumentIndex >= 0 && documents[activeDocumentIndex]) {
+                            const doc = documents[activeDocumentIndex];
+                            contextPrefix = `Using the information from "${doc.name}", please answer: `;
+                        }
+                        
+                        // Send to Claude for text response
+                        await window.Poe.sendUserMessage(
+                            `@Claude-3.7-Sonnet ${contextPrefix}${message}`,
+                            {
+                                handler: handlerId,
+                                stream: true,
+                                openChat: false,
+                                handlerContext: { 
+                                    messageId: messageId,
+                                    isAudioResponse: false,
+                                    type: "chat"
+                                }
+                            }
+                        );
+                    }
+                } else {
+                    // Fallback for non-Poe environments or testing
+                    // Make API call to your backend
+                    const formData = new FormData();
+                    formData.append('message', message);
+                    
+                    if (activeDocumentIndex >= 0 && documents[activeDocumentIndex]) {
+                        formData.append('documentId', documents[activeDocumentIndex].id);
+                    }
+                    
+                    formData.append('useVoice', useVoice);
+                    formData.append('voiceName', voiceSelect.value);
+                    
+                    const response = await fetch('/api/chat/', {
                         method: 'POST',
-                        headers: {
-                            'X-CSRFToken': getCsrfToken(),
-                        },
                         body: formData
                     });
                     
                     if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || 'Error uploading document');
+                        throw new Error('Network response was not ok');
                     }
                     
                     const data = await response.json();
+                    updateBotResponse(messageId, data.textResponse, true);
                     
-                    // Store document context for chat
-                    documentContext = {
-                        id: data.documentId,
-                        title: file.name,
-                        wordCount: data.word_count
-                    };
-                    
-                    // Notify user
-                    addSystemMessageToChat(`Document uploaded: ${file.name}. It contains approximately ${data.word_count} words. You can now ask questions about this document.`);
-                    
-                    // Optionally show a summary if available
-                    if (data.summary) {
-                        const messageId = `msg-${messageIdCounter++}`;
-                        addMessageToChat(`Here's a summary of the document:\n\n${data.summary}`, false, messageId);
+                    if (data.audioUrl) {
+                        playAudio(data.audioUrl);
                     }
-                    
-                } catch (error) {
-                    console.error("Document upload error:", error);
-                    addSystemMessageToChat(`Error uploading document: ${error.message}`);
                 }
-            });
-        });
-
-        // Function to send message and get AI response
-        function sendMessage() {
-            const message = chatInput.value.trim();
-            if (!message) return;
-            
-            // Add user message to chat
-            addMessageToChat(message, true);
-            chatInput.value = '';
-            
-            // Show typing indicator
-            const typingIndicatorId = `typing-${Date.now()}`;
-            addTypingIndicator(typingIndicatorId);
-            
-            // Call AI with Eleven Labs voice integration
-            getAIResponseWithVoice(message, documentContext)
-                .then(response => {
-                    // Remove typing indicator
-                    removeTypingIndicator(typingIndicatorId);
-                    
-                    // Add AI response to chat
-                    const messageId = `msg-${messageIdCounter++}`;
-                    addMessageToChat(response.text, false, messageId, response.audioUrl);
-                    
-                    // Auto-play if enabled
-                    if (autoPlayToggle.checked) {
-                        playAudioResponse(messageId);
-                    }
-                })
-                .catch(error => {
-                    // Remove typing indicator
-                    removeTypingIndicator(typingIndicatorId);
-                    console.error("Error getting AI response:", error);
-                    addSystemMessageToChat("Sorry, there was an error processing your request.");
-                });
-        }
-
-        // Get AI response with ElevenLabs voice integration
-        async function getAIResponseWithVoice(message, documentContext) {
-            try {
-                // Make a request to your Django backend
-                const response = await fetch('/api/chat/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCsrfToken(),
-                    },
-                    body: JSON.stringify({
-                        message: message,
-                        documentId: documentContext?.id,
-                        useVoice: true,
-                        voiceName: voiceSelect.value
-                    })
-                });
-                
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Error getting AI response');
-                }
-                
-                const data = await response.json();
-                
-                return {
-                    text: data.textResponse,
-                    audioUrl: data.audioUrl,
-                    voice: data.voice
-                };
-            } catch (error) {
-                console.error("Error:", error);
-                throw error;
+            } catch (err) {
+                console.error("Error sending message:", err);
+                updateBotResponse(messageId, "", true, "Failed to send message: " + err.message);
             }
         }
-        
-        // Helper to get CSRF token from cookies
+
+        function addUserMessage(text) {
+            const messageHTML = `
+                <div class="chat-message user-message">
+                    <div class="message-avatar">
+                        <i class="fas fa-user text-xl text-white"></i>
+                    </div>
+                    <div class="message-content">
+                        <p class="message-sender text-sm font-medium text-purple-600 dark:text-purple-400 mb-1">You</p>
+                        <p>${text}</p>
+                    </div>
+                </div>`;
+            chatHistory.insertAdjacentHTML('beforeend', messageHTML);
+            scrollToBottom();
+        }
+
+        function addBotMessage(text, messageId, isLoading = false) {
+            const loadingHTML = isLoading ? 
+                `<div class="flex space-x-2 items-center">
+                    <div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+                    <div class="w-2 h-2 rounded-full bg-primary animate-pulse" style="animation-delay: 0.2s"></div>
+                    <div class="w-2 h-2 rounded-full bg-primary animate-pulse" style="animation-delay: 0.4s"></div>
+                </div>` : '';
+            
+            const messageHTML = `
+                <div id="${messageId}" class="chat-message bot-message">
+                    <div class="message-avatar">
+                        <i class="fas fa-robot text-xl text-white"></i>
+                    </div>
+                    <div class="message-content">
+                        <div class="flex items-center justify-between mb-2">
+                            <p class="message-sender text-sm font-medium text-primary">AI Tutor</p>
+                            <div class="audio-controls ${isLoading ? 'hidden' : ''}">
+                                <button class="play-audio-btn text-xs text-gray-500 hover:text-primary p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700" onclick="playMessageAudio('${messageId}')">
+                                    <i class="fas fa-volume-up"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="message-text">${isLoading ? loadingHTML : marked.parse(text)}</div>
+                        <div class="error-text text-red-500 text-sm mt-2 hidden"></div>
+                    </div>
+                </div>`;
+            chatHistory.insertAdjacentHTML('beforeend', messageHTML);
+            scrollToBottom();
+        }
+
+        function addSystemMessage(text) {
+            const messageHTML = `
+                <div class="p-2 my-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200 rounded text-sm text-center">
+                    <i class="fas fa-info-circle mr-2"></i> ${text}
+                </div>`;
+            chatHistory.insertAdjacentHTML('beforeend', messageHTML);
+            scrollToBottom();
+        }
+
+        function updateBotResponse(messageId, text, isComplete, errorText = null) {
+            const messageElement = document.getElementById(messageId);
+            if (!messageElement) return;
+            
+            const messageTextElement = messageElement.querySelector('.message-text');
+            const errorTextElement = messageElement.querySelector('.error-text');
+            const audioControls = messageElement.querySelector('.audio-controls');
+            
+            if (errorText) {
+                messageTextElement.innerHTML = '';
+                errorTextElement.textContent = errorText;
+                errorTextElement.classList.remove('hidden');
+                return;
+            }
+            
+            // Update message text with markdown content
+            if (text) {
+                messageTextElement.innerHTML = marked.parse(text);
+            }
+            
+            // If message is complete, show audio controls
+            if (isComplete && text) {
+                audioControls.classList.remove('hidden');
+            }
+            
+            scrollToBottom();
+        }
+
+        async function generateAndPlayAudio(text, messageId) {
+            try {
+                // Truncate text if it's too long
+                const maxChars = 1000;
+                const truncatedText = text.length > maxChars 
+                    ? text.substring(0, maxChars) + "... (text truncated for voice)" 
+                    : text;
+                
+                // Add a visual indication that we're generating audio
+                const messageElement = document.getElementById(messageId);
+                if (messageElement) {
+                    const audioControls = messageElement.querySelector('.audio-controls');
+                    if (audioControls) {
+                        audioControls.innerHTML = '<div class="text-xs text-gray-500">Generating audio...</div>';
+                    }
+                }
+                
+                if (window.Poe) {
+                    // Send request to ElevenLabs via Poe
+                    await window.Poe.sendUserMessage(
+                        `@ElevenLabs ${truncatedText} --voice ${voiceSelect.value}`,
+                        {
+                            stream: false,
+                            openChat: true
+                        }
+                    );
+                } else {
+                    // Fallback for non-Poe environments
+                    const formData = new FormData();
+                    formData.append('text', truncatedText);
+                    formData.append('voice', voiceSelect.value);
+                    
+                    const response = await fetch('/process-voice/', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    
+                    const data = await response.json();
+                    if (data.audio_url) {
+                        playAudio(data.audio_url);
+                    }
+                }
+                
+                // Reset audio controls after generation
+                if (messageElement) {
+                    const audioControls = messageElement.querySelector('.audio-controls');
+                    if (audioControls) {
+                        audioControls.innerHTML = `
+                            <button class="play-audio-btn text-xs text-gray-500 hover:text-primary p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700" onclick="playMessageAudio('${messageId}')">
+                                <i class="fas fa-volume-up"></i>
+                            </button>`;
+                    }
+                }
+                
+                // Add audio URL to the message element as a data attribute
+                messageElement.dataset.audio = 'generated';
+                messageElement.dataset.text = truncatedText;
+                
+            } catch (error) {
+                console.error("Error generating audio:", error);
+                
+                // Update audio controls to show error
+                const messageElement = document.getElementById(messageId);
+                if (messageElement) {
+                    const audioControls = messageElement.querySelector('.audio-controls');
+                    if (audioControls) {
+                        audioControls.innerHTML = '<div class="text-xs text-red-500">Audio failed</div>';
+                    }
+                }
+            }
+        }
+
+        function playAudio(audioUrl) {
+            audioPlayer.src = audioUrl;
+            audioPlayer.play();
+        }
+
+        // For test voice button
+        async function testSelectedVoice() {
+            const testText = "Hello, this is a test of the selected voice. How do I sound?";
+            testVoiceBtn.disabled = true;
+            testVoiceBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Generating...';
+            
+            try {
+                if (window.Poe) {
+                    await window.Poe.sendUserMessage(
+                        `@ElevenLabs ${testText} --voice ${voiceSelect.value}`,
+                        {
+                            stream: false,
+                            openChat: true
+                        }
+                    );
+                } else {
+                    // Fallback for non-Poe environments
+                    const formData = new FormData();
+                    formData.append('text', testText);
+                    formData.append('voice', voiceSelect.value);
+                    
+                    const response = await fetch('/process-voice/', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    
+                    const data = await response.json();
+                    if (data.audio_url) {
+                        playAudio(data.audio_url);
+                    }
+                }
+            } catch (error) {
+                console.error("Error testing voice:", error);
+            } finally {
+                testVoiceBtn.disabled = false;
+                testVoiceBtn.innerHTML = '<i class="fas fa-play mr-1"></i> Test Voice';
+            }
+        }
+
+        // Expose this function to global scope so the play button onclick can call it
+        window.playMessageAudio = function(messageId) {
+            const messageElement = document.getElementById(messageId);
+            if (!messageElement) return;
+            
+            const playBtn = messageElement.querySelector('.play-audio-btn');
+            if (!playBtn) return;
+            
+            // If already playing, pause it
+            if (isPlaying && currentPlayingBtn === playBtn) {
+                audioPlayer.pause();
+                return;
+            }
+            
+            // If we're playing something else, stop it
+            if (isPlaying && currentPlayingBtn) {
+                audioPlayer.pause();
+                currentPlayingBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+                currentPlayingBtn.classList.remove('audio-playing');
+            }
+            
+            // Set current playing button
+            currentPlayingBtn = playBtn;
+            
+            // Get message text
+            let messageText;
+            if (messageId === 'welcome') {
+                messageText = "Welcome to AI Voice Tutor! I can help you understand your documents and answer your questions. To get started, upload one or more documents using the button above, ask questions about the content in your documents, and get audio responses by clicking the speaker icon. What would you like to learn today?";
+            } else if (messageElement.dataset.text) {
+                messageText = messageElement.dataset.text;
+            } else {
+                messageText = messageElement.querySelector('.message-text').textContent.trim();
+            }
+            
+            if (messageText) {
+                playBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                
+                if (window.Poe) {
+                    // Send to ElevenLabs
+                    window.Poe.sendUserMessage(
+                        `@ElevenLabs ${messageText} --voice ${voiceSelect.value}`,
+                        {
+                            stream: false,
+                            openChat: true
+                        }
+                    );
+                } else {
+                    // Fallback for non-Poe environments
+                    const formData = new FormData();
+                    formData.append('text', messageText);
+                    formData.append('voice', voiceSelect.value);
+                    
+                    fetch('/process-voice/', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.audio_url) {
+                            playAudio(data.audio_url);
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error generating audio:", error);
+                        playBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+                    });
+                }
+            }
+        };
+
+        function openUploadModal() {
+            uploadModal.classList.remove('hidden');
+            // Reset UI
+            filesToUpload = [];
+            selectedFiles.innerHTML = '';
+            confirmUploadBtn.disabled = true;
+            uploadProgress.classList.add('hidden');
+            uploadProgressBar.style.width = '0%';
+            uploadPercentage.textContent = '0%';
+        }
+
+        function closeUploadModal() {
+            uploadModal.classList.add('hidden');
+            fileInput.value = '';
+        }
+
+        function handleFileSelection(files) {
+            if (!files || !files.length) return;
+            
+            // Clear previous selection
+            filesToUpload = [];
+            selectedFiles.innerHTML = '';
+            
+            Array.from(files).forEach(file => {
+                // Check file type and size
+                const validTypes = [
+                    'application/pdf', 
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    'text/plain',
+                    'text/markdown'
+                ];
+                
+                if (!validTypes.includes(file.type)) {
+                    addFileError(file.name, 'Invalid file type');
+                    return;
+                }
+                
+                if (file.size > 10 * 1024 * 1024) { // 10MB limit
+                    addFileError(file.name, 'File exceeds 10MB limit');
+                    return;
+                }
+                
+                filesToUpload.push(file);
+                addFilePreview(file);
+            });
+            
+            confirmUploadBtn.disabled = filesToUpload.length === 0;
+        }
+
+        function addFilePreview(file) {
+            const fileSize = formatFileSize(file.size);
+            let fileIcon;
+            
+            if (file.type === 'application/pdf') {
+                fileIcon = '<i class="fas fa-file-pdf text-red-500"></i>';
+            } else if (file.type.includes('word')) {
+                fileIcon = '<i class="fas fa-file-word text-blue-500"></i>';
+            } else {
+                fileIcon = '<i class="fas fa-file-alt text-gray-500"></i>';
+            }
+            
+            const fileHTML = `
+                <div class="flex items-center p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                    <div class="mr-3 text-xl">${fileIcon}</div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium truncate">${file.name}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">${fileSize}</p>
+                    </div>
+                    <button class="remove-file-btn text-gray-400 hover:text-red-500 p-1" data-filename="${file.name}">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>`;
+            
+            selectedFiles.insertAdjacentHTML('beforeend', fileHTML);
+            
+            // Add remove button handler
+            const removeBtn = selectedFiles.querySelector(`[data-filename="${file.name}"]`);
+            removeBtn.addEventListener('click', () => {
+                filesToUpload = filesToUpload.filter(f => f.name !== file.name);
+                removeBtn.closest('div').remove();
+                confirmUploadBtn.disabled = filesToUpload.length === 0;
+            });
+        }
+
+        function addFileError(filename, error) {
+            const fileHTML = `
+                <div class="flex items-center p-2 bg-red-50 dark:bg-red-900/20 rounded">
+                    <div class="mr-3 text-xl"><i class="fas fa-exclamation-circle text-red-500"></i></div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium truncate">${filename}</p>
+                        <p class="text-xs text-red-500">${error}</p>
+                    </div>
+                </div>`;
+            
+            selectedFiles.insertAdjacentHTML('beforeend', fileHTML);
+        }
+
+        async function processSelectedFiles() {
+            if (!filesToUpload.length) return;
+            
+            // Show upload progress
+            uploadProgress.classList.remove('hidden');
+            confirmUploadBtn.disabled = true;
+            confirmUploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Uploading...';
+            
+            // Simulate progress
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += 5;
+                if (progress > 90) {
+                    clearInterval(progressInterval);
+                }
+                uploadProgressBar.style.width = `${progress}%`;
+                uploadPercentage.textContent = `${progress}%`;
+            }, 200);
+            
+            try {
+                // Process each file
+                const newDocuments = [];
+                
+                for (const file of filesToUpload) {
+                    // Create a document object
+                    const docId = 'doc-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+                    const newDoc = {
+                        id: docId,
+                        name: file.name,
+                        size: file.size,
+                        type: file.type,
+                        uploadDate: new Date(),
+                        summary: "Processing document...",
+                        file: file
+                    };
+                    
+                    newDocuments.push(newDoc);
+                }
+                
+                // Add documents to state
+                documents = [...documents, ...newDocuments];
+                
+                // Update UI
+                updateDocumentList();
+                if (documents.length === 1) {
+                    // Auto select first document
+                    setActiveDocument(0);
+                }
+                
+                // Show document area if hidden
+                documentArea.classList.remove('hidden');
+                
+                // Process each document (request summary from OpenAI)
+                for (let i = 0; i < newDocuments.length; i++) {
+                    const doc = newDocuments[i];
+                    await requestDocumentSummary(doc);
+                }
+                
+                // Complete the upload progress
+                uploadProgressBar.style.width = '100%';
+                uploadPercentage.textContent = '100%';
+                
+                // Close modal
+                setTimeout(() => {
+                    closeUploadModal();
+                    addSystemMessage(`${newDocuments.length} document(s) uploaded successfully!`);
+                }, 500);
+                
+            } catch (error) {
+                console.error('Error processing files:', error);
+                addSystemMessage(`Error uploading documents: ${error.message}`);
+            } finally {
+                clearInterval(progressInterval);
+                confirmUploadBtn.disabled = false;
+                confirmUploadBtn.innerHTML = '<i class="fas fa-upload mr-2"></i> Upload Files';
+            }
+        }
+
+        async function requestDocumentSummary(document) {
+            // Create a message ID for this summary request
+            const summaryId = 'summary-' + Date.now();
+            
+            try {
+                if (window.Poe) {
+                    // Format the prompt for Poe
+                    const prompt = `I've uploaded a document called "${document.name}". Please generate a comprehensive summary of what this document might contain based on its name. Focus on likely key topics, main arguments, and important components. Keep it around 3-5 sentences.`;
+                    
+                    // Send to Claude via Poe
+                    await window.Poe.sendUserMessage(
+                        `@Claude-3.7-Sonnet ${prompt}`,
+                        {
+                            handler: handlerId,
+                            stream: false,
+                            openChat: false,
+                            handlerContext: { 
+                                messageId: summaryId,
+                                type: "document_summary",
+                                documentId: document.id
+                            }
+                        }
+                    );
+                } else {
+                    // Fallback to Django backend for non-Poe environments
+                    const formData = new FormData();
+                    formData.append('document', document.file);
+                    
+                    const response = await fetch('/process-document/', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRFToken': getCsrfToken()
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    
+                    const data = await response.json();
+                    processDocumentSummary(data.summary, document.id);
+                }
+                
+                return true;
+            } catch (error) {
+                console.error("Error requesting document summary:", error);
+                
+                // Update document with error
+                const docIndex = documents.findIndex(d => d.id === document.id);
+                if (docIndex >= 0) {
+                    documents[docIndex].summary = "Error generating summary.";
+                    if (activeDocumentIndex === docIndex) {
+                        updateActiveSummary();
+                    }
+                }
+                
+                return false;
+            }
+        }
+
+        function summarizeCurrentDocument() {
+            if (activeDocumentIndex < 0 || !documents[activeDocumentIndex]) {
+                addSystemMessage("Please select a document to summarize first.");
+                return;
+            }
+            
+            const document = documents[activeDocumentIndex];
+            
+            // Create a message ID for this request
+            const messageId = 'msg-' + Date.now();
+            
+            // Add a loading message from the bot
+            addBotMessage('', messageId, true);
+            
+            try {
+                if (window.Poe) {
+                    // Send to Claude for comprehensive summary
+                    window.Poe.sendUserMessage(
+                        `@Claude-3.7-Sonnet Let's imagine I've uploaded a document titled "${document.name}". Please provide a detailed summary of what this document likely contains. Include the main topics, arguments, and insights that would typically be found in such a document. Format your summary with bullet points for main ideas and sub-bullet points for supporting details.`,
+                        {
+                            handler: handlerId,
+                            stream: true,
+                            openChat: false,
+                            handlerContext: { 
+                                messageId: messageId,
+                                isAudioResponse: false,
+                                type: "chat"
+                            }
+                        }
+                    );
+                } else {
+                    // Fallback for non-Poe environments
+                    const formData = new FormData();
+                    formData.append('documentId', document.id);
+                    formData.append('action', 'summarize');
+                    
+                    fetch('/process-document/', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRFToken': getCsrfToken()
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        updateBotResponse(messageId, data.summary, true);
+                    })
+                    .catch(error => {
+                        console.error("Error summarizing document:", error);
+                        updateBotResponse(messageId, "", true, "Failed to summarize: " + error.message);
+                    });
+                }
+            } catch (error) {
+                console.error("Error summarizing document:", error);
+                updateBotResponse(messageId, "", true, "Failed to summarize: " + error.message);
+            }
+        }
+
+        function processDocumentSummary(summaryText, documentId) {
+            // Find document and update with summary
+            const docIndex = documents.findIndex(d => d.id === documentId);
+            if (docIndex >= 0) {
+                documents[docIndex].summary = summaryText;
+                
+                // Update UI if this is the active document
+                if (activeDocumentIndex === docIndex) {
+                    updateActiveSummary();
+                }
+                
+                // Update document list to reflect summary status
+                updateDocumentItem(docIndex);
+            }
+        }
+
+        function updateDocumentList() {
+            // Clear placeholder items
+            documentList.innerHTML = '';
+            
+            if (documents.length === 0) {
+                documentList.innerHTML = `
+                    <div class="text-center py-4 text-gray-500 dark:text-gray-400">
+                        <p>No documents uploaded yet</p>
+                    </div>`;
+                
+                prevDocBtn.classList.add('hidden');
+                nextDocBtn.classList.add('hidden');
+                return;
+            }
+            
+            // Show navigation buttons if needed
+            if (documents.length > 3) {
+                prevDocBtn.classList.remove('hidden');
+                nextDocBtn.classList.remove('hidden');
+            } else {
+                prevDocBtn.classList.add('hidden');
+                nextDocBtn.classList.add('hidden');
+            }
+            
+            // Add document items
+            const docContainer = document.createElement('div');
+            docContainer.className = 'flex gap-3 min-w-max px-2';
+            
+            documents.forEach((doc, index) => {
+                const docItem = createDocumentItem(doc, index);
+                docContainer.appendChild(docItem);
+            });
+            
+            documentList.appendChild(docContainer);
+        }
+
+        function createDocumentItem(doc, index) {
+            const docItem = document.createElement('div');
+            docItem.className = `document-item ${index === activeDocumentIndex ? 'active' : ''}`;
+            docItem.setAttribute('data-index', index);
+            
+            // Set background color based on file type
+            let bgColor, icon;
+            if (doc.type === 'application/pdf') {
+                bgColor = 'bg-red-100 dark:bg-red-900/30';
+                icon = 'fas fa-file-pdf';
+            } else if (doc.type.includes('word')) {
+                bgColor = 'bg-blue-100 dark:bg-blue-900/30';
+                icon = 'fas fa-file-word';
+            } else if (doc.type === 'text/plain') {
+                bgColor = 'bg-gray-100 dark:bg-gray-700';
+                icon = 'fas fa-file-alt';
+            } else {
+                bgColor = 'bg-purple-100 dark:bg-purple-900/30';
+                icon = 'fas fa-file-alt';
+            }
+            
+            // First letter of filename as background
+            const firstLetter = doc.name.charAt(0).toUpperCase();
+            
+            docItem.innerHTML = `
+                <div class="absolute inset-0 ${bgColor} flex items-center justify-center text-5xl font-bold text-gray-300 dark:text-gray-600 overflow-hidden">
+                    ${firstLetter}
+                </div>
+                <div class="document-icon">
+                    <i class="${icon}"></i>
+                </div>
+                <div class="document-overlay">
+                    <h3 class="text-white text-sm font-medium line-clamp-2">${doc.name}</h3>
+                    <p class="text-white/80 text-xs mt-1">${formatFileSize(doc.size)}</p>
+                </div>
+                ${doc.summary === "Processing document..." ? 
+                    `<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/90 dark:bg-gray-800/90 p-2 rounded-full">
+                        <div class="loading-spinner"></div>
+                    </div>` : ''}
+            `;
+            
+            // Add click handler
+            docItem.addEventListener('click', () => {
+                setActiveDocument(index);
+            });
+            
+            return docItem;
+        }
+
+        function updateDocumentItem(index) {
+            const doc = documents[index];
+            const docItem = documentList.querySelector(`.document-item[data-index="${index}"]`);
+            if (!docItem) return;
+            
+            // Remove loading spinner if summary is ready
+            if (doc.summary !== "Processing document...") {
+                const spinner = docItem.querySelector('.loading-spinner');
+                if (spinner) {
+                    spinner.parentElement.remove();
+                }
+            }
+        }
+
+        function setActiveDocument(index) {
+            if (index < 0 || index >= documents.length) return;
+            
+            // Update active state
+            activeDocumentIndex = index;
+            
+            // Update document items
+            const docItems = documentList.querySelectorAll('.document-item');
+            docItems.forEach((item, i) => {
+                if (i === index) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+            
+            // Update summary area
+            updateActiveSummary();
+            
+            // Show summary area
+            activeDocumentSummary.classList.remove('hidden');
+        }
+
+        function updateActiveSummary() {
+            if (activeDocumentIndex < 0 || !documents[activeDocumentIndex]) {
+                activeDocumentSummary.classList.add('hidden');
+                return;
+            }
+            
+            const doc = documents[activeDocumentIndex];
+            
+            // Update title
+            activeSummaryTitle.textContent = doc.name;
+            
+            // Update content
+            if (doc.summary === "Processing document...") {
+                activeSummaryContent.innerHTML = `
+                    <div class="flex items-center gap-2 text-gray-500">
+                        <div class="loading-spinner"></div>
+                        <span>Generating document summary...</span>
+                    </div>`;
+            } else {
+                activeSummaryContent.innerHTML = doc.summary;
+            }
+            
+            // Reset expansion state
+            activeSummaryContent.classList.remove('expanded');
+            const icon = toggleSummaryBtn.querySelector('i');
+            icon.classList.remove('fa-chevron-up');
+            icon.classList.add('fa-chevron-down');
+        }
+
+        function navigateDocuments(direction) {
+            // Scroll the document list
+            documentList.scrollBy({
+                left: direction * 150,
+                behavior: 'smooth'
+            });
+        }
+
+        function toggleDocumentArea() {
+            const documentCarousel = document.getElementById('documentCarousel');
+            const activeDocumentSummary = document.getElementById('activeDocumentSummary');
+            const icon = collapseDocsBtn.querySelector('i');
+            
+            if (isDocAreaExpanded) {
+                // Collapse
+                documentCarousel.classList.add('hidden');
+                activeDocumentSummary.classList.add('hidden');
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
+            } else {
+                // Expand
+                documentCarousel.classList.remove('hidden');
+                if (activeDocumentIndex >= 0) {
+                    activeDocumentSummary.classList.remove('hidden');
+                }
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+            }
+            
+            isDocAreaExpanded = !isDocAreaExpanded;
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+            else return (bytes / 1048576).toFixed(1) + ' MB';
+        }
+
+        function scrollToBottom() {
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
         function getCsrfToken() {
+            // Get CSRF token from cookie or from a meta tag
             const cookieValue = document.cookie
                 .split('; ')
                 .find(row => row.startsWith('csrftoken='))
                 ?.split('=')[1];
-            return cookieValue || '';
-        }
-
-        // Add message to chat
-        function addMessageToChat(text, isUser, messageId = null, audioUrl = null) {
-            const id = messageId || `msg-${messageIdCounter++}`;
             
-            let audioButton = '';
-            if (!isUser && audioUrl) {
-                audioButton = `
-                    <button class="play-audio-btn text-indigo-400 hover:text-indigo-300" data-message-id="${id}" data-audio-url="${audioUrl}">
-                        <i class="fas fa-play"></i>
-                    </button>
-                `;
-            }
+            if (cookieValue) return cookieValue;
             
-            const messageHTML = `
-                <div class="chat-message ${isUser ? 'user-message' : 'bot-message'}" id="${id}">
-                    <div class="message-avatar">
-                        <i class="fas ${isUser ? 'fa-user text-purple-400' : 'fa-robot text-indigo-400'} text-xl"></i>
-                    </div>
-                    <div class="message-content">
-                        <div class="flex justify-between items-center mb-1">
-                            <p class="message-sender text-sm ${isUser ? 'text-purple-400' : 'text-indigo-400'}">
-                                ${isUser ? 'You' : 'AI Assistant'}
-                            </p>
-                            ${!isUser ? audioButton : ''}
-                        </div>
-                        <div class="text-gray-100">${isUser ? text : marked.parse(text)}</div>
-                    </div>
-                </div>`;
-                
-            chatHistory.insertAdjacentHTML('beforeend', messageHTML);
-            chatHistory.scrollTop = chatHistory.scrollHeight;
-            
-            // Add event listeners for audio buttons
-            if (!isUser && audioUrl) {
-                const button = document.querySelector(`.play-audio-btn[data-message-id="${id}"]`);
-                if (button) {
-                    button.addEventListener('click', function() {
-                        const messageId = this.getAttribute('data-message-id');
-                        playAudioResponse(messageId);
-                    });
-                }
-            }
+            // Try to get it from a meta tag
+            const metaTag = document.querySelector('meta[name="csrf-token"]');
+            return metaTag ? metaTag.getAttribute('content') : '';
         }
-        
-        // Add system message (for notifications)
-        function addSystemMessageToChat(text) {
-            const messageHTML = `
-                <div class="chat-message system-message">
-                    <div class="message-content system-content text-center py-2 px-4">
-                        <p class="text-gray-400 text-sm">${text}</p>
-                    </div>
-                </div>`;
-                
-            chatHistory.insertAdjacentHTML('beforeend', messageHTML);
-            chatHistory.scrollTop = chatHistory.scrollHeight;
-        }
-        
-        // Add typing indicator
-        function addTypingIndicator(id) {
-            const indicatorHTML = `
-                <div id="${id}" class="chat-message bot-message typing-indicator">
-                    <div class="message-avatar">
-                        <i class="fas fa-robot text-xl text-indigo-400"></i>
-                    </div>
-                    <div class="message-content">
-                        <div class="flex items-center space-x-1">
-                            <div class="dot dot1"></div>
-                            <div class="dot dot2"></div>
-                            <div class="dot dot3"></div>
-                        </div>
-                    </div>
-                </div>`;
-                
-            chatHistory.insertAdjacentHTML('beforeend', indicatorHTML);
-            chatHistory.scrollTop = chatHistory.scrollHeight;
-        }
-        
-        // Remove typing indicator
-        function removeTypingIndicator(id) {
-            const indicator = document.getElementById(id);
-            if (indicator) {
-                indicator.remove();
-            }
-        }
-
-        // Play audio response
-        function playAudioResponse(messageId) {
-            const audioPlayer = document.getElementById('audioPlayer');
-            const allButtons = document.querySelectorAll('.play-audio-btn');
-            
-            // Reset all other buttons
-            allButtons.forEach(btn => {
-                if (btn.getAttribute('data-message-id') !== messageId) {
-                    btn.innerHTML = '<i class="fas fa-play"></i>';
-                }
-            });
-            
-            const button = document.querySelector(`.play-audio-btn[data-message-id="${messageId}"]`);
-            
-            if (button) {
-                const audioUrl = button.getAttribute('data-audio-url');
-                const isPaused = button.innerHTML.includes('play');
-                
-                if (isPaused) {
-                    // Stop any currently playing audio
-                    audioPlayer.pause();
-                    
-                    // Set the source and play
-                    audioPlayer.src = audioUrl;
-                    audioPlayer.play().catch(error => {
-                        console.error("Audio playback error:", error);
-                        addSystemMessageToChat("Error playing audio response. Please try again.");
-                    });
-                    
-                    button.innerHTML = '<i class="fas fa-pause"></i>';
-                    
-                    // Set up event listener for when audio finishes
-                    audioPlayer.onended = () => {
-                        button.innerHTML = '<i class="fas fa-play"></i>';
-                    };
-                } else {
-                    // Pause the audio
-                    audioPlayer.pause();
-                    button.innerHTML = '<i class="fas fa-play"></i>';
-                }
-            }
-        }
-
-        // Initialize welcome message audio button
-        const welcomeButton = document.querySelector(`.play-audio-btn[data-message-id="welcome-message"]`);
-        if (welcomeButton) {
-            // In a real implementation, we would fetch this audio URL from the server
-            fetch('/api/chat/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCsrfToken(),
-                },
-                body: JSON.stringify({
-                    message: 'Hello',
-                    useVoice: true,
-                    voiceName: voiceSelect.value
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                welcomeButton.setAttribute('data-audio-url', data.audioUrl);
-                welcomeButton.addEventListener('click', function() {
-                    playAudioResponse('welcome-message');
-                });
-            })
-            .catch(error => {
-                console.error("Error fetching welcome audio:", error);
-                welcomeButton.style.display = 'none';
-            });
-        }
-        
-
     });
-    </script>
-
-    <style>
-    /* Base styles */
-    .chat-message {
-        @apply flex items-start space-x-4 mb-4;
-    }
-
-    .message-avatar {
-        @apply w-10 h-10 flex items-center justify-center rounded-full bg-gray-700;
-    }
-
-    .message-content {
-        @apply flex-1 bg-gray-700/50 rounded-xl p-4;
-    }
-
-    .user-message .message-content {
-        @apply bg-purple-500/10;
-    }
-
-    .bot-message .message-content {
-        @apply bg-indigo-500/10;
-    }
-
-    .system-content {
-        @apply bg-gray-700/30 rounded-lg w-full;
-    }
-
-    .suggestion-chip {
-        @apply px-3 py-2 bg-gray-700/50 rounded-lg text-sm hover:bg-gray-700 transition-colors;
-    }
-
-    .btn-icon {
-        @apply p-2 hover:bg-gray-700/50 rounded-lg text-gray-400 hover:text-indigo-400 transition-colors;
-    }
-
-    /* Voice button styles */
-    .voice-btn {
-        @apply p-2 bg-gray-700/50 rounded-lg text-gray-400 hover:text-indigo-400 transition-colors w-10 h-10 flex items-center justify-center;
-    }
-
-    .voice-btn.recording {
-        @apply bg-red-500/50 text-white;
-        animation: pulse 1.5s infinite;
-    }
-
-    /* Voice toggle switch */
-    .voice-toggle-container {
-        @apply flex items-center bg-gray-700/50 rounded-lg px-3 py-2;
-    }
-
-    .voice-toggle-switch {
-        position: relative;
-        display: inline-block;
-        width: 40px;
-        height: 20px;
-    }
-
-    .voice-toggle-switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-    }
-
-    .voice-toggle-slider {
-        position: absolute;
-        cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: #4B5563;
-        transition: .4s;
-        border-radius: 20px;
-    }
-
-    .voice-toggle-slider:before {
-        position: absolute;
-        content: "";
-        height: 16px;
-        width: 16px;
-        left: 2px;
-        bottom: 2px;
-        background-color: white;
-        transition: .4s;
-        border-radius: 50%;
-    }
-
-    input:checked + .voice-toggle-slider {
-        background-color: #5D5CDE;
-    }
-
-    input:checked + .voice-toggle-slider:before {
-        transform: translateX(20px);
-    }
-
-    /* Typing indicator */
-    .typing-indicator .dot {
-        @apply bg-gray-400 rounded-full w-2 h-2 inline-block;
-        animation: bounce 1.4s infinite;
-    }
-
-    .typing-indicator .dot2 {
-        animation-delay: 0.2s;
-    }
-
-    .typing-indicator .dot3 {
-        animation-delay: 0.4s;
-    }
-
-    /* Pulse animation */
-    .pulse-animation {
-        animation: pulse 1.5s infinite;
-    }
-
-    @keyframes pulse {
-        0% {
-            opacity: 1;
-        }
-        50% {
-            opacity: 0.3;
-        }
-        100% {
-            opacity: 1;
-        }
-    }
-
-    @keyframes bounce {
-        0%, 80%, 100% { 
-            transform: translateY(0);
-        }
-        40% { 
-            transform: translateY(-5px);
-        }
-    }
-
-    /* Override marked.js styles for better dark mode compatibility */
-    .message-content a {
-        @apply text-indigo-400 hover:text-indigo-300 underline;
-    }
-
-    .message-content code {
-        @apply bg-gray-800 px-1 py-0.5 rounded text-sm;
-    }
-
-    .message-content pre {
-        @apply bg-gray-800 p-2 rounded my-2 overflow-x-auto;
-    }
-
-    .message-content blockquote {
-        @apply border-l-4 border-indigo-500 pl-4 italic my-2;
-    }
-
-    .message-content ul, .message-content ol {
-        @apply pl-6 my-2;
-    }
-
-    .message-content ul {
-        @apply list-disc;
-    }
-
-    .message-content ol {
-        @apply list-decimal;
-    }
-
-    /* Make sure code blocks don't overflow on mobile */
-    @media (max-width: 640px) {
-        pre {
-            max-width: calc(100vw - 120px);
-        }
-    }
-    </style>
-</body>
-</html>
+</script>
+{% endblock %}

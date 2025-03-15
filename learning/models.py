@@ -32,3 +32,22 @@ def save_user_profile(sender, instance, **kwargs):
         instance.profile.save()
     else:
         UserProfile.objects.create(user=instance)
+
+
+class Quiz(models.Model):
+    CATEGORIES = [
+        ('PHY', 'Physics'),
+        ('MATH', 'Mathematics'),
+        ('BIO', 'Biology')
+    ]
+    
+    title = models.CharField(max_length=200)
+    category = models.CharField(max_length=4, choices=CATEGORIES)
+    difficulty = models.PositiveIntegerField()
+    questions = models.ManyToManyField('Question')
+
+class Question(models.Model):
+    text = models.TextField()
+    options = models.JSONField()
+    correct_answer = models.CharField(max_length=200)
+    explanation = models.TextField()

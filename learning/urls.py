@@ -10,8 +10,8 @@ urlpatterns = [
     path('chat/', views.chat_view, name='chat'),
     
     # Document Processing
-    path('process-document/', views.process_document_view, name='process_document'),
-    path('generate-quiz/', views.generate_quiz_view, name='generate_quiz'),
+    path('process-document/', views.process_document, name='process_document'),
+    path('generate-quiz/', views.generate_quiz, name='generate_quiz'),
     
     # Authentication
     path('register/', views.register_view, name='register'),
@@ -25,4 +25,6 @@ urlpatterns = [
     # Profile
     path('profile/', views.profile_view, name='profile'),
     path('api/chat/', views.handle_chat_interaction, name='chat_api'),
+    path('process-voice/', views.process_voice, name='process_voice'),
+
 ]
