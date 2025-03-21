@@ -131,3 +131,10 @@ GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 # Debugging
 print(f"OpenAI API Key Loaded: {bool(OPENAI_API_KEY)}")  # Remove in production
 print(f"Gemini API Key Loaded: {bool(GEMINI_API_KEY)}")  # Remove in production
+
+# Add these session settings
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_AGE = 86400  # 24 hours in seconds
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Session expires when browser closes
+SESSION_SAVE_EVERY_REQUEST = True  # Update the session after every request
+LOGIN_REDIRECT_URL='dashboard'

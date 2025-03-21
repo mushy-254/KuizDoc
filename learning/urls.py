@@ -4,10 +4,11 @@ from . import views
 
 urlpatterns = [
     # Core Views
-    path('', views.dashboard, name='dashboard'),
+    path('', views.home_view, name='home'),
+    path('chat/', views.chat_view, name='chat'),
     path('documents/', views.documents_view, name='documents'),
     path('analytics/', views.analytics_view, name='analytics'),
-    path('chat/', views.chat_view, name='chat'),
+    path('dashboard/', views.dashboard, name='dashboard'),
     
     # Document Processing
     path('process-document/', views.process_document, name='process_document'),
@@ -16,16 +17,10 @@ urlpatterns = [
     # Authentication
     path('register/', views.register_view, name='register'),
     path('login/', views.login_view, name='login'),
-    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
-    path('home/', views.home_view, name='home'),
+    path('logout/', views.logout_view, name='logout'),
+    path('profile/', views.profile_view, name='profile'),
     
     # API Endpoints
-    # path('api/chat/', views.handle_chat_interaction, name='chat_api'),
-    # path('api/voice/', views.process_voice, name='voice_api'),
-    
-    # Profile
-    path('profile/', views.profile_view, name='profile'),
     path('api/chat/', views.handle_chat_interaction, name='chat_api'),
     path('process-voice/', views.process_voice, name='process_voice'),
-
 ]

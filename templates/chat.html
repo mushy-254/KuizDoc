@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
+{% csrf_token %}
 <div class="container mx-auto max-w-6xl px-4 py-6">
     <!-- App Header -->
     <header class="mb-6">
@@ -503,9 +504,12 @@
         scrollbar-width: none;
     }
 </style>
-<elevenlabs-convai agent-id="zBqCVxXmduBYXlS81EJr"></elevenlabs-convai><script src="https://elevenlabs.io/convai-widget/index.js" async type="text/javascript"></script>
+<elevenlabs-convai agent-id="5BeD4CTGWWzJB2w30KsB"></elevenlabs-convai><script src="https://elevenlabs.io/convai-widget/index.js" async type="text/javascript"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
     document.addEventListener('DOMContentLoaded', () => {
         // DOM Elements
         const chatInput = document.getElementById('chatInput');
@@ -752,94 +756,54 @@
         async function sendMessage() {
             const message = chatInput.value.trim();
             if (!message) return;
-
-            // Add user message to chat
+            
+            // Add user message
             addUserMessage(message);
             chatInput.value = '';
-
-            // Create a temporary message ID for tracking updates
-            const messageId = 'msg-' + Date.now();
             
-            // Add a loading message from the bot
+            // Create message ID for tracking
+            const messageId = 'msg-' + Date.now();
             addBotMessage('', messageId, true);
-
+            
             try {
-                // Determine if this is a voice request
-                const useVoice = message.toLowerCase().includes('speak') || 
-                                message.toLowerCase().includes('say') || 
-                                message.toLowerCase().includes('tell me');
+                // Get active document ID if any
+                const documentId = activeDocumentIndex >= 0 ? documents[activeDocumentIndex].id : null;
                 
-                if (window.Poe) {
-                    if (useVoice) {
-                        // Direct voice generation with ElevenLabs
-                        await window.Poe.sendUserMessage(
-                            `@ElevenLabs ${message} --voice ${voiceSelect.value}`,
-                            {
-                                handler: handlerId,
-                                stream: false,
-                                openChat: false,
-                                handlerContext: { 
-                                    messageId: messageId,
-                                    isAudioResponse: true,
-                                    type: "chat"
-                                }
-                            }
-                        );
-                    } else {
-                        // Prepare context from active document if available
-                        let contextPrefix = "";
-                        if (activeDocumentIndex >= 0 && documents[activeDocumentIndex]) {
-                            const doc = documents[activeDocumentIndex];
-                            contextPrefix = `Using the information from "${doc.name}", please answer: `;
-                        }
-                        
-                        // Send to Claude for text response
-                        await window.Poe.sendUserMessage(
-                            `@Claude-3.7-Sonnet ${contextPrefix}${message}`,
-                            {
-                                handler: handlerId,
-                                stream: true,
-                                openChat: false,
-                                handlerContext: { 
-                                    messageId: messageId,
-                                    isAudioResponse: false,
-                                    type: "chat"
-                                }
-                            }
-                        );
-                    }
-                } else {
-                    // Fallback for non-Poe environments or testing
-                    // Make API call to your backend
-                    const formData = new FormData();
-                    formData.append('message', message);
-                    
-                    if (activeDocumentIndex >= 0 && documents[activeDocumentIndex]) {
-                        formData.append('documentId', documents[activeDocumentIndex].id);
-                    }
-                    
-                    formData.append('useVoice', useVoice);
-                    formData.append('voiceName', voiceSelect.value);
-                    
-                    const response = await fetch('/api/chat/', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    
-                    const data = await response.json();
-                    updateBotResponse(messageId, data.textResponse, true);
-                    
-                    if (data.audioUrl) {
-                        playAudio(data.audioUrl);
-                    }
+                console.log('Sending message:', {message, documentId}); // Debug log
+                
+                // Send chat request
+                const response = await fetch('/api/chat/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        documentId: documentId
+                    })
+                });
+                
+                const data = await response.json();
+                console.log('Received response:', data); // Debug log
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Chat request failed');
                 }
-            } catch (err) {
-                console.error("Error sending message:", err);
-                updateBotResponse(messageId, "", true, "Failed to send message: " + err.message);
+                
+                // Update bot response
+                updateBotResponse(messageId, data.response, true);
+                
+                // Add follow-up question if provided
+                if (data.followup_question) {
+                    setTimeout(() => {
+                        addBotMessage(data.followup_question);
+                    }, 1000);
+                }
+                
+            } catch (error) {
+                console.error('Error sending message:', error);
+                updateBotResponse(messageId, '', true, error.message);
             }
         }
 
@@ -1137,7 +1101,15 @@
 
         function closeUploadModal() {
             uploadModal.classList.add('hidden');
+            // Reset the modal state
             fileInput.value = '';
+            filesToUpload = [];
+            selectedFiles.innerHTML = '';
+            uploadProgress.classList.add('hidden');
+            uploadProgressBar.style.width = '0%';
+            uploadPercentage.textContent = '0%';
+            confirmUploadBtn.disabled = true;
+            confirmUploadBtn.innerHTML = '<i class="fas fa-upload mr-2"></i> Upload Files';
         }
 
         function handleFileSelection(files) {
@@ -1227,215 +1199,75 @@
             // Show upload progress
             uploadProgress.classList.remove('hidden');
             confirmUploadBtn.disabled = true;
-            confirmUploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Uploading...';
-            
-            // Simulate progress
-            let progress = 0;
-            const progressInterval = setInterval(() => {
-                progress += 5;
-                if (progress > 90) {
-                    clearInterval(progressInterval);
-                }
-                uploadProgressBar.style.width = `${progress}%`;
-                uploadPercentage.textContent = `${progress}%`;
-            }, 200);
+            confirmUploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...';
             
             try {
-                // Process each file
-                const newDocuments = [];
-                
                 for (const file of filesToUpload) {
-                    // Create a document object
-                    const docId = 'doc-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+                    const formData = new FormData();
+                    formData.append('document', file);
+                    
+                    const response = await fetch('/process-document/', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': csrfToken,
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: formData
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (!response.ok) {
+                        throw new Error(data.error || 'Document processing failed');
+                    }
+                    
+                    // Create document object
                     const newDoc = {
-                        id: docId,
-                        name: file.name,
-                        size: file.size,
-                        type: file.type,
-                        uploadDate: new Date(),
-                        summary: "Processing document...",
+                        id: 'doc-' + Date.now(),
+                        name: data.name,
+                        size: data.size,
+                        summary: data.summary,
                         file: file
                     };
                     
-                    newDocuments.push(newDoc);
+                    // Add to documents array
+                    documents.push(newDoc);
+                    
+                    // Add initial AI message with summary and questions
+                    addBotMessage(`
+                        I've analyzed your document "${data.name}". Here's a summary:
+                        
+                        ${data.summary}
+                        
+                        Let's discuss it! Here are some questions to get started:
+                        ${data.suggested_questions}
+                    `);
                 }
-                
-                // Add documents to state
-                documents = [...documents, ...newDocuments];
                 
                 // Update UI
                 updateDocumentList();
                 if (documents.length === 1) {
-                    // Auto select first document
                     setActiveDocument(0);
                 }
                 
-                // Show document area if hidden
+                // Show document area
                 documentArea.classList.remove('hidden');
                 
-                // Process each document (request summary from OpenAI)
-                for (let i = 0; i < newDocuments.length; i++) {
-                    const doc = newDocuments[i];
-                    await requestDocumentSummary(doc);
-                }
+                // Close modal automatically after successful upload
+                closeUploadModal();
                 
-                // Complete the upload progress
-                uploadProgressBar.style.width = '100%';
-                uploadPercentage.textContent = '100%';
-                
-                // Close modal
-                setTimeout(() => {
-                    closeUploadModal();
-                    addSystemMessage(`${newDocuments.length} document(s) uploaded successfully!`);
-                }, 500);
+                // Reset file input and selected files
+                fileInput.value = '';
+                filesToUpload = [];
+                selectedFiles.innerHTML = '';
                 
             } catch (error) {
                 console.error('Error processing files:', error);
-                addSystemMessage(`Error uploading documents: ${error.message}`);
+                addSystemMessage(`Error processing document: ${error.message}`);
             } finally {
-                clearInterval(progressInterval);
                 confirmUploadBtn.disabled = false;
                 confirmUploadBtn.innerHTML = '<i class="fas fa-upload mr-2"></i> Upload Files';
-            }
-        }
-
-        async function requestDocumentSummary(document) {
-            // Create a message ID for this summary request
-            const summaryId = 'summary-' + Date.now();
-            
-            try {
-                if (window.Poe) {
-                    // Format the prompt for Poe
-                    const prompt = `I've uploaded a document called "${document.name}". Please generate a comprehensive summary of what this document might contain based on its name. Focus on likely key topics, main arguments, and important components. Keep it around 3-5 sentences.`;
-                    
-                    // Send to Claude via Poe
-                    await window.Poe.sendUserMessage(
-                        `@Claude-3.7-Sonnet ${prompt}`,
-                        {
-                            handler: handlerId,
-                            stream: false,
-                            openChat: false,
-                            handlerContext: { 
-                                messageId: summaryId,
-                                type: "document_summary",
-                                documentId: document.id
-                            }
-                        }
-                    );
-                } else {
-                    // Fallback to Django backend for non-Poe environments
-                    const formData = new FormData();
-                    formData.append('document', document.file);
-                    
-                    const response = await fetch('/process-document/', {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-CSRFToken': getCsrfToken()
-                        }
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    
-                    const data = await response.json();
-                    processDocumentSummary(data.summary, document.id);
-                }
-                
-                return true;
-            } catch (error) {
-                console.error("Error requesting document summary:", error);
-                
-                // Update document with error
-                const docIndex = documents.findIndex(d => d.id === document.id);
-                if (docIndex >= 0) {
-                    documents[docIndex].summary = "Error generating summary.";
-                    if (activeDocumentIndex === docIndex) {
-                        updateActiveSummary();
-                    }
-                }
-                
-                return false;
-            }
-        }
-
-        function summarizeCurrentDocument() {
-            if (activeDocumentIndex < 0 || !documents[activeDocumentIndex]) {
-                addSystemMessage("Please select a document to summarize first.");
-                return;
-            }
-            
-            const document = documents[activeDocumentIndex];
-            
-            // Create a message ID for this request
-            const messageId = 'msg-' + Date.now();
-            
-            // Add a loading message from the bot
-            addBotMessage('', messageId, true);
-            
-            try {
-                if (window.Poe) {
-                    // Send to Claude for comprehensive summary
-                    window.Poe.sendUserMessage(
-                        `@Claude-3.7-Sonnet Let's imagine I've uploaded a document titled "${document.name}". Please provide a detailed summary of what this document likely contains. Include the main topics, arguments, and insights that would typically be found in such a document. Format your summary with bullet points for main ideas and sub-bullet points for supporting details.`,
-                        {
-                            handler: handlerId,
-                            stream: true,
-                            openChat: false,
-                            handlerContext: { 
-                                messageId: messageId,
-                                isAudioResponse: false,
-                                type: "chat"
-                            }
-                        }
-                    );
-                } else {
-                    // Fallback for non-Poe environments
-                    const formData = new FormData();
-                    formData.append('documentId', document.id);
-                    formData.append('action', 'summarize');
-                    
-                    fetch('/process-document/', {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-CSRFToken': getCsrfToken()
-                        }
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        updateBotResponse(messageId, data.summary, true);
-                    })
-                    .catch(error => {
-                        console.error("Error summarizing document:", error);
-                        updateBotResponse(messageId, "", true, "Failed to summarize: " + error.message);
-                    });
-                }
-            } catch (error) {
-                console.error("Error summarizing document:", error);
-                updateBotResponse(messageId, "", true, "Failed to summarize: " + error.message);
-            }
-        }
-
-        function processDocumentSummary(summaryText, documentId) {
-            // Find document and update with summary
-            const docIndex = documents.findIndex(d => d.id === documentId);
-            if (docIndex >= 0) {
-                documents[docIndex].summary = summaryText;
-                
-                // Update UI if this is the active document
-                if (activeDocumentIndex === docIndex) {
-                    updateActiveSummary();
-                }
-                
-                // Update document list to reflect summary status
-                updateDocumentItem(docIndex);
+                uploadProgress.classList.add('hidden');
             }
         }
 
@@ -1522,20 +1354,6 @@
             });
             
             return docItem;
-        }
-
-        function updateDocumentItem(index) {
-            const doc = documents[index];
-            const docItem = documentList.querySelector(`.document-item[data-index="${index}"]`);
-            if (!docItem) return;
-            
-            // Remove loading spinner if summary is ready
-            if (doc.summary !== "Processing document...") {
-                const spinner = docItem.querySelector('.loading-spinner');
-                if (spinner) {
-                    spinner.parentElement.remove();
-                }
-            }
         }
 
         function setActiveDocument(index) {
@@ -1630,20 +1448,6 @@
 
         function scrollToBottom() {
             chatHistory.scrollTop = chatHistory.scrollHeight;
-        }
-
-        function getCsrfToken() {
-            // Get CSRF token from cookie or from a meta tag
-            const cookieValue = document.cookie
-                .split('; ')
-                .find(row => row.startsWith('csrftoken='))
-                ?.split('=')[1];
-            
-            if (cookieValue) return cookieValue;
-            
-            // Try to get it from a meta tag
-            const metaTag = document.querySelector('meta[name="csrf-token"]');
-            return metaTag ? metaTag.getAttribute('content') : '';
         }
     });
 </script>

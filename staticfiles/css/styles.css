@@ -1,93 +1,113 @@
-/* Base Styles */
+/* Custom Styles for KuizDoc */
+:root {
+    --primary-gradient: linear-gradient(to right, #6a11cb 0%, #2575fc 100%);
+    --secondary-gradient: linear-gradient(to right, #ff6a00 0%, #ee0979 100%);
+}
+
 body {
+    background-color: #0F172A;
+    color: #e2e8f0;
     font-family: 'Inter', sans-serif;
-    background: linear-gradient(to bottom right, #8a2be2, #ff69b4); /* Violet to Pink */
-    color: #333;
-    margin: 0;
-    padding: 0;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
 }
 
-h1, h2, h3 {
-    color: #fff;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-a {
-    text-decoration: none;
-    color: inherit;
-    transition: color 0.3s ease;
-}
-
-a:hover {
-    color: #8a2be2; /* Violet */
-}
-
-/* Navbar */
-nav {
-    background: rgba(255, 255, 255, 0.8);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    padding: 1rem 2rem;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-}
-
-nav a {
-    margin-right: 1rem;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    transition: background 0.3s ease;
-}
-
-nav a:hover {
-    background: rgba(255, 255, 255, 0.3);
-}
-
-/* Glass Card */
 .glass-card {
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 1rem;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-    padding: 2rem;
-    margin-bottom: 2rem;
-    transition: transform 0.3s ease;
+    transition: all 0.3s ease;
 }
 
 .glass-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-10px);
+    box-shadow: 0 20px 30px rgba(0, 0, 0, 0.1);
 }
 
-/* Buttons */
-button {
-    background: linear-gradient(to right, #8a2be2, #ff69b4); /* Violet to Pink */
-    color: #fff;
+.btn-primary {
+    background: var(--primary-gradient);
+    color: white;
     border: none;
-    border-radius: 0.5rem;
     padding: 0.75rem 1.5rem;
-    cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 0.75rem;
+    transition: all 0.3s ease;
 }
 
-button:hover {
+.btn-primary:hover {
     transform: scale(1.05);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 20px rgba(37, 117, 252, 0.3);
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    nav {
-        padding: 0.5rem 1rem;
-    }
+.btn-outline {
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: transparent;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    transition: all 0.3s ease;
+}
 
-    .glass-card {
-        padding: 1rem;
-    }
+.btn-outline:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
 
-    button {
-        padding: 0.5rem 1rem;
+.chart-filter {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    transition: all 0.3s ease;
+}
+
+.chart-filter.active {
+    background: var(--primary-gradient);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+
+@keyframes gradient-text {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+@keyframes slide-in {
+    from { 
+        opacity: 0; 
+        transform: translateY(20px); 
     }
-} 
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+@keyframes fade-in {
+    from { 
+        opacity: 0; 
+    }
+    to { 
+        opacity: 1; 
+    }
+}
+
+.animate-gradient-text {
+    background-size: 400% 400%;
+    animation: gradient-text 10s ease infinite;
+}
+
+.animate-slide-in {
+    animation: slide-in 0.5s ease-out;
+}
+
+.animate-fade-in {
+    animation: fade-in 0.7s ease-in;
+}

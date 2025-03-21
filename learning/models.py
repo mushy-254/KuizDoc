@@ -1,7 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
@@ -21,19 +19,6 @@ class Document(models.Model):
     def __str__(self):
         return self.file.name
 
-@receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-        UserProfile.objects.create(user=instance)
-
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    if hasattr(instance, 'profile'):
-        instance.profile.save()
-    else:
-        UserProfile.objects.create(user=instance)
-
-
 class Quiz(models.Model):
     CATEGORIES = [
         ('PHY', 'Physics'),
@@ -51,3 +36,4 @@ class Question(models.Model):
     options = models.JSONField()
     correct_answer = models.CharField(max_length=200)
     explanation = models.TextField()
+

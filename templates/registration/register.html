@@ -1,265 +1,241 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - Create an Account</title>
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>KuizDoc AI - Register</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
     <style>
-        /* Base styles */
         :root {
-            --color-bg: #111827;
-            --color-card: #1f2937;
-            --color-text: #f3f4f6;
-            --color-text-secondary: #9ca3af;
-            --color-primary: #6366f1;
-            --color-primary-hover: #4f46e5;
-            --color-input: #374151;
-            --color-error: #ef4444;
+            --primary: #6C63FF;
+            --primary-dark: #5A52D9;
+            --secondary: #2D3748;
+            --accent: #4FD1C5;
+            --background: #1A202C;
+            --text: #E2E8F0;
+            --text-muted: #A0AEC0;
+            --error: #F56565;
+            --success: #48BB78;
         }
         
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background-color: var(--color-bg);
-            color: var(--color-text);
-            line-height: 1.5;
+        * {
             margin: 0;
             padding: 0;
-            display: flex;
-            justify-content: center;
-            min-height: 100vh;
-        }
-        
-        /* Card styles */
-        .max-w-md {
-            max-width: 28rem;
-            width: 100%;
-        }
-        
-        .mx-auto {
-            margin-left: auto;
-            margin-right: auto;
-        }
-        
-        .my-12 {
-            margin-top: 3rem;
-            margin-bottom: 3rem;
-        }
-        
-        .bg-gray-800 {
-            background-color: var(--color-card);
-        }
-        
-        .p-8 {
-            padding: 2rem;
-        }
-        
-        .rounded-xl {
-            border-radius: 0.75rem;
-        }
-        
-        /* Text styles */
-        .text-3xl {
-            font-size: 1.875rem;
-        }
-        
-        .font-bold {
-            font-weight: 700;
-        }
-        
-        .mb-8 {
-            margin-bottom: 2rem;
-        }
-        
-        .text-center {
-            text-align: center;
-        }
-        
-        .mr-2 {
-            margin-right: 0.5rem;
-        }
-        
-        .text-indigo-400 {
-            color: var(--color-primary);
-        }
-        
-        /* Form styles */
-        .space-y-6 > * + * {
-            margin-top: 1.5rem;
-        }
-        
-        .block {
-            display: block;
-        }
-        
-        .text-sm {
-            font-size: 0.875rem;
-        }
-        
-        .font-medium {
-            font-weight: 500;
-        }
-        
-        .mb-2 {
-            margin-bottom: 0.5rem;
-        }
-        
-        .w-full {
-            width: 100%;
-        }
-        
-        .bg-gray-700 {
-            background-color: var(--color-input);
-        }
-        
-        .rounded-lg {
-            border-radius: 0.5rem;
-        }
-        
-        .px-4 {
-            padding-left: 1rem;
-            padding-right: 1rem;
-        }
-        
-        .py-3 {
-            padding-top: 0.75rem;
-            padding-bottom: 0.75rem;
-        }
-        
-        input {
-            outline: none;
-            border: 1px solid var(--color-input);
-            color: var(--color-text);
-            font-size: 1rem;
             box-sizing: border-box;
         }
         
-        input:focus {
-            border-color: var(--color-primary);
-            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(108, 99, 255, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(79, 209, 197, 0.05) 0%, transparent 50%);
+            background-size: 100% 100%;
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .register-container {
+            max-width: 400px;
+            margin: auto;
+            padding: 2.5rem;
+            border-radius: 16px;
+            background: linear-gradient(145deg, rgba(45, 55, 72, 0.95), rgba(26, 32, 44, 0.95));
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3),
+                        0 0 40px rgba(108, 99, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(108, 99, 255, 0.1);
+            transform: translateY(0);
+            transition: transform 0.3s ease;
         }
         
-        .btn-primary {
-            background-color: var(--color-primary);
-            color: white;
+        .register-container:hover {
+            transform: translateY(-5px);
+        }
+        
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+        
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary);
+            text-align: center;
+        }
+        
+        .register-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+        
+        .register-header h1 {
+            font-size: 2rem;
+            color: var(--text);
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            margin-bottom: 0.5rem;
+        }
+        
+        .register-header span {
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
             font-weight: 500;
-            border: none;
-            padding: 0.75rem 1rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            transition: background-color 0.15s ease-in-out;
+            color: var(--text);
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 10px;
+            border: 1px solid rgba(160, 174, 192, 0.2);
+            background-color: rgba(45, 55, 72, 0.5);
+            color: var(--text);
             font-size: 1rem;
+            transition: all 0.2s;
         }
         
-        .btn-primary:hover {
-            background-color: var(--color-primary-hover);
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.2);
+        }
+
+        .register-button {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 1rem;
         }
         
-        /* Error messages */
-        .text-red-400 {
-            color: var(--color-error);
-            font-size: 0.875rem;
-            margin-top: 0.25rem;
+        .register-button:hover {
+            background: linear-gradient(90deg, var(--primary-dark), var(--primary));
+            transform: translateY(-2px);
         }
-        
-        .hidden {
-            display: none;
+
+        .messages {
+            margin-bottom: 1.5rem;
         }
-        
-        /* Link styles */
-        .text-center a {
-            color: var(--color-primary);
+
+        .message {
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .message.error {
+            background-color: rgba(245, 101, 101, 0.1);
+            border: 1px solid var(--error);
+            color: var(--error);
+        }
+
+        .message.success {
+            background-color: rgba(72, 187, 120, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .footer-links {
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+
+        .footer-links a {
+            color: var(--primary);
             text-decoration: none;
+            margin: 0 1rem;
+            font-size: 0.9rem;
+            transition: color 0.2s;
         }
-        
-        .text-center a:hover {
+
+        .footer-links a:hover {
+            color: var(--accent);
             text-decoration: underline;
         }
-        
-        .mt-4 {
-            margin-top: 1rem;
+
+        @media (max-width: 640px) {
+            .register-container {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+            
+            .register-header h1 {
+                font-size: 1.8rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="max-w-md mx-auto my-12 bg-gray-800 p-8 rounded-xl">
-        <h2 class="text-3xl font-bold mb-8 text-center">
-            <i class="fas fa-user-plus mr-2 text-indigo-400"></i>
-            Get Started
-        </h2>
-        
-        <form method="post" class="space-y-6" onsubmit="return validateForm()">
-            <!-- Replace with your actual CSRF token implementation -->
-            <input type="hidden" name="csrf_token" value="your_csrf_token_here">
-            
-            <div>
-                <label class="block text-sm font-medium mb-2">Username</label>
-                <input type="text" name="username" required
-                       class="w-full bg-gray-700 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500">
+    <main style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem;">
+        <div class="register-container">
+            <div class="logo-container">
+                <div class="logo">KuizDoc</div>
             </div>
             
-            <div>
-                <label class="block text-sm font-medium mb-2">Email</label>
-                <input type="email" name="email" required
-                       class="w-full bg-gray-700 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500">
+            <div class="register-header">
+                <h1>Join <span>KuizDoc AI</span></h1>
+                <p>Create your account to start learning</p>
             </div>
 
-            <div>
-                <label class="block text-sm font-medium mb-2">Password</label>
-                <input type="password" id="password1" name="password1" required
-                       class="w-full bg-gray-700 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500">
-                <small class="text-red-400 hidden" id="password-error">
-                    Password must be at least 8 characters, include uppercase, lowercase, numbers, and symbols.
-                </small>
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
             </div>
-
-            <div>
-                <label class="block text-sm font-medium mb-2">Confirm Password</label>
-                <input type="password" id="password2" name="password2" required
-                       class="w-full bg-gray-700 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500">
-                <small class="text-red-400 hidden" id="confirm-error">
-                    Passwords do not match.
-                </small>
+            {% endif %}
+            
+            <form method="post" class="register-form">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" class="form-input" 
+                           placeholder="Choose a username" required minlength="3">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" class="form-input" 
+                           placeholder="Create a strong password" required minlength="8">
+                </div>
+                
+                <button type="submit" class="register-button">
+                    <i class="fas fa-user-plus mr-2"></i> Create Account
+                </button>
+            </form>
+            
+            <div class="footer-links">
+                <a href="{% url 'login' %}">Already have an account? Log in</a>
             </div>
-
-            <button type="submit" class="btn-primary w-full">
-                Create Account
-            </button>
-        </form>
-        
-        <div class="text-center mt-4">
-            <p>Already have an account? <a href="{% url 'login' %}"">Log in</a></p>
         </div>
-    </div>
-
-    <script>
-        function validateForm() {
-            let password1 = document.getElementById("password1").value;
-            let password2 = document.getElementById("password2").value;
-            let passwordError = document.getElementById("password-error");
-            let confirmError = document.getElementById("confirm-error");
-
-            let strongPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-
-            // Reset error messages
-            passwordError.classList.add("hidden");
-            confirmError.classList.add("hidden");
-
-            // Check password strength
-            if (!strongPassword.test(password1)) {
-                passwordError.classList.remove("hidden");
-                return false;
-            }
-
-            // Check password match
-            if (password1 !== password2) {
-                confirmError.classList.remove("hidden");
-                return false;
-            }
-
-            return true; // Form submits if no errors
-        }
-    </script>
+    </main>
 </body>
 </html>
